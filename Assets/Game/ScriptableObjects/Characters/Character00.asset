@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a82fa5c0dfc8cf4294416f058712f7a, type: 3}
+  m_Name: Character00
+  m_EditorClassIdentifier: Assembly-CSharp::UnitSO
+  Name: 
+  VisualPrefab: {fileID: 5952886377418083793, guid: 033262f0d8eeae6478cc3f655d1ec141, type: 3}
+  MaxHP: 50
+  Attack: 10
+  Defense: 0
+  Speed: 0
+  CritChance: 0
+  Team: 1
+  AIBehavior: {fileID: 11400000, guid: 16c751e5abf004242ba6092794bac46f, type: 2}
+  Skills:
+  - {fileID: 11400000, guid: 7d4e03d6267f13c4192c8ab8f46ed920, type: 2}
