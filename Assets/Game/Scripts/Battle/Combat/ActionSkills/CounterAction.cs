@@ -4,10 +4,8 @@ using UnityEngine;
 
 public class CounterAction : BattleAction
 {
-    public override IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData)
-    {
-        if (actionData.SFX != null) AudioSource.PlayClipAtPoint(actionData.SFX, attacker.transform.position);
-        
+    public override IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData, BattlePresentationContext presentation)
+    {   
         Debug.Log($"{attacker.Data.Name} memasuki mode Bersiap Counter!");
         yield return new WaitForSeconds(0.6f);
 
@@ -26,7 +24,7 @@ public class CounterAction : BattleAction
             Debug.Log($"{attacker.Data.Name} memicu COUNTER ATTACK!");
 
             // Eksekusi serangan balik instan ke penyerang menggunakan ActionSystem biasa
-            ActionSystem counterAttackSystem = new ActionSystem();
+            // ActionSystem counterAttackSystem = new ActionSystem();
             
             // Mencari basic attack milik dirinya untuk dipakai memukul balik
             BattleActionSO basicAttack = attacker.Data.Skills

@@ -1,17 +1,35 @@
 using System.Collections.Generic;
-using System.Linq;
+using UnityEngine;
 
 public class BattleAISystem
 {
+    public BattleActionSO ChooseAction(BattleUnit unit)
+    {
+        if (unit == null)
+            return null;
+
+        if (unit.AIBehavior == null)
+            return unit.GetAction(BattleActionType.Attack);
+
+        return unit.AIBehavior.SelectAction(unit);
+    }
+
     public BattleUnit ChooseTarget(
-        BattleUnit enemy,
+        BattleUnit unit,
+        BattleActionSO action,
         List<BattleUnit> players,
         List<BattleUnit> enemies)
     {
-        if (enemy == null)
+        if (unit == null || action == null)
             return null;
 
-        return enemy.AIBehavior?.SelectTarget(enemy, players, enemies)
-            ?? players.FirstOrDefault(unit => unit != null && !unit.IsDead);
+        if (unit.AIBehavior == null)
+            return null;
+
+        return unit.AIBehavior.SelectTarget(
+            unit,
+            action,
+            players,
+            enemies);
     }
 }

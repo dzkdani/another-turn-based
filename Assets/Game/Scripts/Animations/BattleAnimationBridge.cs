@@ -4,127 +4,60 @@ using NaughtyAttributes;
 [RequireComponent(typeof(BattleUnit))]
 public class BattleAnimationBridge : MonoBehaviour
 {
-    private BattleUnit battleUnit;
     private Animator animator;
+    private BattleUnitVisual visual;
 
-    [Header("Animation Parameter Names")]
     private static readonly int AttackHash = Animator.StringToHash("Attack");
-    private static readonly int TakeDamageHash = Animator.StringToHash("TakeDamage");
-    private static readonly int DieHash = Animator.StringToHash("IsDead");
-    private static readonly int ActiveTurnHash = Animator.StringToHash("OnTurnStart");
-
-    [SerializeField] private bool useTimeline = false;
+    private static readonly int HitHash = Animator.StringToHash("TakeDamage");
+    private static readonly int DeathHash = Animator.StringToHash("IsDead");
+    private static readonly int TurnHash = Animator.StringToHash("OnTurnStart");
 
     private void Awake()
     {
-        battleUnit = GetComponent<BattleUnit>();
-        animator = GetComponentInChildren<Animator>(); // Mengambil animator di child (model Mixamo)
+        visual = GetComponent<BattleUnitVisual>();
+        animator = visual.Animator;
 
         if (animator == null)
         {
-            Debug.LogWarning($"Animator tidak ditemukan di {gameObject.name} atau child-nya!");
+            Debug.LogWarning($"Animator not found on {gameObject.name}");
         }
     }
 
-    private void OnEnable()
+    [Button]
+    public void PlayAttackAnimation()
     {
-        // --- BERLANGGANAN (SUBSCRIBE) KE EVENT ARCHITECTURE ---
-        battleUnit.OnTurnStart += HandleTurnStart;
-        battleUnit.OnTurnEnd += HandleTurnEnd;
-        battleUnit.OnAttack += HandleAttack;
-        battleUnit.OnTakeDamage += HandleTakeDamage;
-        battleUnit.OnDeath += HandleDeath;
-        
-        // Cadangan pengaman jika unit di-reset dinamis saat character select
-        battleUnit.OnTurnStart += UpdateTurnVisualStatus; 
-    }
-
-    private void OnDisable()
-    {
-        // --- UN-SUBSCRIBE SAAT DI-DISABLE (Mencegah Memory Leak) ---
-        if (battleUnit != null)
-        {
-            battleUnit.OnTurnStart -= HandleTurnStart;
-            battleUnit.OnTurnEnd -= HandleTurnEnd;
-            battleUnit.OnAttack -= HandleAttack;
-            battleUnit.OnTakeDamage -= HandleTakeDamage;
-            battleUnit.OnDeath -= HandleDeath;
-            battleUnit.OnTurnStart -= UpdateTurnVisualStatus;
-        }
-    }
-
-    [Button("Turn Start")]
-    private void HandleTurnStart()
-    {
-        SetCurrentTurn(true);
-    }
-
-    [Button("Turn End")]
-    private void HandleTurnEnd()
-    {
-        SetCurrentTurn(false);
-    }
-
-    [Button("Attack")]
-    private void HandleAttack()
-    {
-        PlayAttack();
-    }
-
-    private void HandleTakeDamage(int damageAmount)
-    {
-        PlayHit();
-    }
-
-    [Button("Die")]
-    private void HandleDeath()
-    {
-        PlayDeath();
-    }
-
-    public void PlayAttack()
-    {
-        if(useTimeline)
-        {
-            // timelinePlayer.Play(attackTimeline);
+        if (animator == null)
             return;
-        }
 
         animator.SetTrigger(AttackHash);
     }
 
-    public void PlayHit()
+    [Button]
+    public void PlayHitAnimation()
     {
-        if (animator == null) return;
+        if (animator == null)
+            return;
 
-        // Memicu trigger animasi terkena pukulan (Flinch/Hit)
-        animator.SetTrigger(TakeDamageHash);
-        
-        // SANGAT COCOK DI SINI: Tempat memicu Post-Processing Camera Shake / Flash Screen!
-        // CameraShake.Instance.Shake();
+        visual?.PlayFlash();
+        visual?.PlayHitShake();
+
+        animator.SetTrigger(HitHash);
     }
 
-    public void PlayDeath()
+    [Button]
+    public void PlayDeathAnimation()
     {
-        if (animator == null) return;
+        if (animator == null)
+            return;
 
-        // Mengubah status animasi mati menjadi true agar memutar animasi terkapar
-        animator.SetBool(DieHash, true);
+        animator.SetBool(DeathHash, true);
     }
 
     public void SetCurrentTurn(bool active)
     {
-        if (animator == null) return;
-        
-        // Contoh: Membuat karakter mengambil pose siaga khusus saat gilirannya tiba
-        animator.SetBool(ActiveTurnHash, active);
-        
-        // Reset karakter lain saat giliran berakhir diatur saat AdvanceTurn (bisa via Event global)
-    }
+        if (animator == null)
+            return;
 
-    private void UpdateTurnVisualStatus()
-    {
-        // Logika tambahan untuk merapikan visual jika giliran berpindah
-        // Mengubah parameter IsMyTurn menjadi false untuk semua unit lain yang tidak aktif
+        animator.SetBool(TurnHash, active);
     }
 }

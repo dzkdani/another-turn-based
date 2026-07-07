@@ -5,13 +5,11 @@ using System.Linq;
 
 public class CopySkillAction : BattleAction
 {
-    public override IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData)
+    public override IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData, BattlePresentationContext presentation)
     {
         if (targets == null || targets.Count == 0) yield break;
         BattleUnit target = targets[0];
 
-        // Mainkan SFX aktivasi skill meniru milik attacker
-        if (actionData.SFX != null) AudioSource.PlayClipAtPoint(actionData.SFX, attacker.transform.position);
         Debug.Log($"{attacker.Data.Name} menggunakan {actionData.ActionName} pada {target.Data.Name}!");
         yield return new WaitForSeconds(0.5f);
 
@@ -25,7 +23,7 @@ public class CopySkillAction : BattleAction
             yield return new WaitForSeconds(0.5f);
 
             // Eksekusi skill hasil copy menggunakan ActionSystem yang sama secara berantai
-            ActionSystem internalSystem = new ActionSystem();
+            ActionSystem internalSystem = new ActionSystem(presentation);
             
             // Tentukan target baru untuk skill hasil copy (misal: menyerang balik si target asal)
             List<BattleUnit> newTargets = new List<BattleUnit> { target };

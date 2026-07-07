@@ -2,36 +2,117 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "AIBehavior", menuName = "ScriptableObjects/AI/AIBehavior", order = 1)]
+[CreateAssetMenu(
+    fileName = "AIBehavior",
+    menuName = "ScriptableObjects/AI/AI Behavior",
+    order = 1)]
 public class AIBehaviorSO : ScriptableObject
 {
+    [Header("General")]
     public string BehaviorName = "Default";
 
+    [Header("Target Selection")]
     public AIBehaviorType BehaviorType = AIBehaviorType.AttackFirstPlayer;
 
-    // Placeholder for future configuration (weights, priorities, ranges, etc.)
-    public BattleUnit SelectTarget(BattleUnit caster, List<BattleUnit> players, List<BattleUnit> enemies)
+    /// <summary>
+    /// Decide which action the AI wants to use.
+    /// For now AI always prefers Basic Attack.
+    /// Later this can be expanded for Heal, Buff, Counter, etc.
+    /// </summary>
+    public virtual BattleActionSO SelectAction(BattleUnit caster)
     {
-        if (players == null || players.Count == 0)
+        if (caster == null)
+            return null;
+
+        // Current implementation:
+        // Always use Attack if available.
+        BattleActionSO attack =
+            caster.GetAction(BattleActionType.Attack);
+
+        if (attack != null)
+            return attack;
+
+        // Fallback
+        IReadOnlyList<BattleActionSO> skills =
+            caster.GetAllActions();
+
+        return skills.Count > 0 ? skills[0] : null;
+    }
+
+    /// <summary>
+    /// Decide who will become the target.
+    /// Strategy depends on BehaviorType.
+    /// </summary>
+    public virtual BattleUnit SelectTarget(
+        BattleUnit caster,
+        BattleActionSO action,
+        List<BattleUnit> players,
+        List<BattleUnit> enemies)
+    {
+        if (caster == null || action == null)
+            return null;
+
+        List<BattleUnit> candidates;
+
+        switch (action.TargetType)
+        {
+            case TargetType.SingleEnemy:
+                candidates = caster.Team == Team.Player
+                    ? enemies
+                    : players;
+                break;
+
+            case TargetType.SingleAlly:
+                candidates = caster.Team == Team.Player
+                    ? players
+                    : enemies;
+                break;
+
+            default:
+                return null;
+        }
+
+        candidates = candidates
+            .Where(x => x != null && !x.IsDead)
+            .ToList();
+
+        if (candidates.Count == 0)
             return null;
 
         switch (BehaviorType)
         {
             case AIBehaviorType.AttackFirstPlayer:
-                return players.FirstOrDefault(unit => unit != null && !unit.IsDead);
+                return candidates.First();
 
             case AIBehaviorType.RandomTarget:
-            {
-                var alive = players.Where(u => u != null && !u.IsDead).ToList();
-                return alive.Count > 0 ? alive[Random.Range(0, alive.Count)] : null;
-            }
+                return candidates[
+                    Random.Range(0, candidates.Count)];
 
             case AIBehaviorType.LowestHP:
-                return players.Where(u => u != null && !u.IsDead).OrderBy(u => u.Data.CurrentHP).FirstOrDefault();
+                return candidates
+                    .OrderBy(x => x.Data.CurrentHP)
+                    .First();
+
+            case AIBehaviorType.Custom:
+                return SelectCustomTarget(
+                    caster,
+                    action,
+                    candidates);
 
             default:
-                return players.FirstOrDefault(unit => unit != null && !unit.IsDead);
+                return candidates.First();
         }
+    }
+
+    /// <summary>
+    /// Extension point for future boss AI.
+    /// </summary>
+    protected virtual BattleUnit SelectCustomTarget(
+        BattleUnit caster,
+        BattleActionSO action,
+        List<BattleUnit> candidates)
+    {
+        return candidates.FirstOrDefault();
     }
 }
 

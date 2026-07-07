@@ -4,9 +4,8 @@ using UnityEngine;
 
 public class InterruptAction : BattleAction
 {
-    public override IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData)
+    public override IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData, BattlePresentationContext presentation)
     {
-        if (actionData.SFX != null) AudioSource.PlayClipAtPoint(actionData.SFX, attacker.transform.position);
         yield return new WaitForSeconds(0.4f);
 
         foreach (var target in targets)
@@ -17,9 +16,9 @@ public class InterruptAction : BattleAction
             int damage = DamageSystem.CalculateDamage(attacker, target, actionData.DamageMultiplier);
             target.TakeDamage(damage);
 
-            if (actionData.HitVFXPrefab != null)
+            if (actionData.FX.HitVFXPrefab != null)
             {
-                Object.Instantiate(actionData.HitVFXPrefab, target.transform.position, Quaternion.identity);
+                Object.Instantiate(actionData.FX.HitVFXPrefab, target.transform.position, Quaternion.identity);
             }
 
             // 2. KUNCI INTERRUPT: Manipulasi Turn Order HSR

@@ -31,29 +31,22 @@ public class BattleActionSO : ScriptableObject
 
     [Min(0)]
     public int HealAmount = 0;
-
-    [Space]
-
-    [Header("Presentation")]
-
-    [Tooltip("Timeline yang dimainkan saat skill digunakan.")]
-    public TimelineAsset Timeline;
-
-    [Tooltip("VFX yang muncul di caster (contoh: charge, cast circle).")]
-    public GameObject CastVFXPrefab;
-
-    [Tooltip("VFX yang muncul di target (contoh: hit slash, explosion).")]
-    public GameObject HitVFXPrefab;
-
-    [Tooltip("SFX utama skill.")]
-    public AudioClip SFX;
 }
 
 [System.Serializable]
 public class BattleActionFX
 {
     public TimelineAsset Timeline;
+
+    public string AnimationTrigger = "Attack";
+
+    public float HitDelay = 0.35f;
+
     public GameObject CastVFXPrefab;
+
     public GameObject HitVFXPrefab;
-    public AudioClip SFX;
+
+    public AudioClip CastSFX;
+    
+    public AudioClip HitSFX;
 }

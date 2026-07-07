@@ -1,83 +1,149 @@
 using UnityEngine;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public class BattleUnit : MonoBehaviour
 {
-    public UnitData Data;
-    public UnitSO UnitSO;
-    public Team Team; // Sekarang status ini dinamis (bisa di-overwrite oleh Initializer/Character Select)
-    public bool IsDead;
+    public UnitData Data { get; private set; }
 
-    // --- ARCHITECTURE EVENT-DRIVEN (Wajib Syarat Test Novastra) ---
+    public UnitSO UnitSO { get; private set; }
+
+    public Team Team { get; private set; }
+
+    public bool IsDead { get; private set; }
+
     public Action OnTurnStart;
     public Action OnTurnEnd;
     public Action OnAttack;
-    public Action<int> OnTakeDamage; // Mengirim jumlah final damage untuk Post-Processing / UI Pop-up
+    public Action<int> OnTakeDamage;
     public Action OnDeath;
+
+    private GameObject visualInstance;
+    [SerializeField] private BattleUnitVisual visual;
+    public BattleUnitVisual Visual => visual;
+    [SerializeField] private BattleAnimationBridge animationBridge;
+    public BattleAnimationBridge AnimationBridge => animationBridge;
 
     private void Awake()
     {
-        InitializeUnit();
+        if (visual == null)
+            visual = GetComponent<BattleUnitVisual>();
+        if (animationBridge == null)
+            animationBridge = GetComponent<BattleAnimationBridge>();
     }
 
-    // Dipisah menjadi fungsi public agar bisa di-reset atau di-reinit oleh BattleInitializer
-    public void InitializeUnit()
+    public void Setup(UnitSO unitSO, Team team)
+    {
+        UnitSO = unitSO;
+        Team = team;
+
+        InitializeData();
+        SpawnVisual();
+    }
+
+    private void InitializeData()
     {
         if (UnitSO == null)
         {
-            Debug.LogError($"{gameObject.name} had no SO Assigned!");
+            Debug.LogError("BattleUnit has no UnitSO.");
             return;
         }
-        
-        Data = new UnitData();
 
-        Data.Name = UnitSO.Name;
-        Data.MaxHP = UnitSO.MaxHP;
-        Data.CurrentHP = UnitSO.MaxHP;
-        Data.CurrentAtk = UnitSO.Attack;
-        Data.CurrentDef = UnitSO.Defense;
-        Data.CurrentSpd = UnitSO.Speed;
-        Data.CurrentCritChance = UnitSO.CritChance;
+        Data = new UnitData
+        {
+            Name = UnitSO.Name,
+            MaxHP = UnitSO.MaxHP,
+            CurrentHP = UnitSO.MaxHP,
+            CurrentAtk = UnitSO.Attack,
+            CurrentDef = UnitSO.Defense,
+            CurrentSpd = UnitSO.Speed,
+            CurrentCritChance = UnitSO.CritChance,
+            Skills = new List<BattleActionSO>(UnitSO.Skills)
+        };
 
-        Data.Skills = new List<BattleActionSO>();
-        Data.Skills.AddRange(UnitSO.Skills);
-
-        // Ambil default team dari SO, tapi variabel ini bisa diganti nanti saat Character Select
-        Team = UnitSO.Team; 
         IsDead = false;
     }
 
-    public AIBehaviorSO AIBehavior => UnitSO != null ? UnitSO.AIBehavior : null;
+    private void SpawnVisual()
+    {
+        if (UnitSO.VisualPrefab == null)
+            return;
 
-    // Refaktor fungsi Take Damage agar menghitung DEF dan memicu Event-Driven Architecture
+        if (visualInstance != null)
+            Destroy(visualInstance);
+
+        visualInstance = Instantiate(
+            UnitSO.VisualPrefab,
+            transform);
+
+        visualInstance.transform.localPosition = Vector3.zero;
+        visualInstance.transform.localRotation = Quaternion.identity;
+    }
+
+    public BattleActionSO GetAction(BattleActionType type)
+    {
+        return Data.Skills.Find(x => x.ActionType == type);
+    }
+
+    public IReadOnlyList<BattleActionSO> GetAllActions()
+    {
+        return Data.Skills;
+    }
+
+    public bool HasAction(BattleActionType type)
+    {
+        return GetAction(type) != null;
+    }
+
+    public BattleActionSO GetDefaultAction()
+    {
+        return Data.Skills.FirstOrDefault();
+    }
+
+    public BattleActionSO GetRandomAction()
+    {
+        return Data.Skills[
+            UnityEngine.Random.Range(0, Data.Skills.Count)];
+    }
+
+    public AIBehaviorSO AIBehavior =>
+        UnitSO != null ? UnitSO.AIBehavior : null;
+
     public void TakeDamage(int rawDamage)
     {
-        if (IsDead) return;
+        if (IsDead)
+            return;
 
-        // Formula damage standar: Raw DMG dikurangi DEF (Minimal menghasilkan 1 damage)
-        int finalDamage = Mathf.Max(1, rawDamage - Data.CurrentDef);
-        
+        int finalDamage =
+            Mathf.Max(1, rawDamage - Data.CurrentDef);
+
         Data.CurrentHP -= finalDamage;
-        Data.CurrentHP = Mathf.Clamp(Data.CurrentHP, 0, Data.MaxHP);
+        Data.CurrentHP =
+            Mathf.Clamp(Data.CurrentHP, 0, Data.MaxHP);
 
-        // 1. Picu event internal system lama Anda
         BattleEvents.OnUnitDamaged?.Invoke(this);
 
-        // 2. Picu event lokal spesifik unit untuk Post-Processing Flash & Hit Animation (Req Utama)
         OnTakeDamage?.Invoke(finalDamage);
 
-        Debug.Log($"{Data.Name} took {finalDamage} damage. Current HP: {Data.CurrentHP}");
+        Debug.Log($"{Data.Name} took {finalDamage} damage.");
 
         if (Data.CurrentHP <= 0)
         {
             IsDead = true;
-            OnDeath?.Invoke(); // Picu event kematian (untuk trigger animasi mati)
+            OnDeath?.Invoke();
         }
     }
 
     public void Heal(int amount)
     {
-        Debug.Log($"Implement healing later..");
+        if (IsDead)
+            return;
+
+        Data.CurrentHP =
+            Mathf.Clamp(
+                Data.CurrentHP + amount,
+                0,
+                Data.MaxHP);
     }
 }

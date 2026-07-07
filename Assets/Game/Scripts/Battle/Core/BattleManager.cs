@@ -5,6 +5,10 @@ using System.Linq;
 
 public class BattleManager : MonoBehaviour
 {
+    [SerializeField] private BattleVFXManager battleVFXManager;
+    [SerializeField] private BattleAudioManager battleAudioManager;
+
+    public BattlePresentationContext Presentation { get; private set; }
     public TurnManager TurnManager { get; private set; }
     public BattleState CurrentState => battleFlow.CurrentState;
     public BattleUnit CurrentUnit => battleFlow.CurrentUnit;
@@ -42,8 +46,12 @@ public class BattleManager : MonoBehaviour
     {
         TurnManager = new TurnManager();
         targetSystem = new TargetSystem();
-        actionSystem = new ActionSystem();
+        // actionSystem = new ActionSystem();
         aiSystem = new BattleAISystem();
+        Presentation = new BattlePresentationContext(
+            battleVFXManager,
+            battleAudioManager);
+        actionSystem = new ActionSystem(Presentation);
         
         battleFlow = new BattleFlow(TurnManager, actionSystem, aiSystem, targetSystem);
         battleFlow.EnemyTurnStarted += OnEnemyTurnStarted;

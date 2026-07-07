@@ -5,7 +5,14 @@ using UnityEngine;
 
 public class ActionSystem
 {
+    private readonly BattlePresentationContext presentation;
+
     private readonly Dictionary<BattleActionType, Type> actionClassCache = new();
+
+    public ActionSystem(BattlePresentationContext presentation)
+    {
+        this.presentation = presentation;
+    }
 
     public List<BattleUnit> ResolveTargets(BattleUnit caster, BattleActionSO action, List<BattleUnit> players, List<BattleUnit> enemies, BattleUnit preferredTarget, TargetSystem targetSystem)
     {
@@ -28,7 +35,11 @@ public class ActionSystem
         }
 
         // Jalankan eksekusi dengan melempar data spesifik dari ScriptableObject-nya!
-        yield return actionExecutor.Execute(attacker, targets, actionData);
+        yield return actionExecutor.Execute(
+            attacker,
+            targets,
+            actionData,
+            presentation);
     }
 
     private BattleAction GetActionExecutor(BattleActionType type)

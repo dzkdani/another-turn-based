@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 
 public abstract class BattleAction
 {
@@ -7,6 +7,7 @@ public abstract class BattleAction
     (
         BattleUnit attacker,
         List<BattleUnit> targets,
-        BattleActionSO actionData
+        BattleActionSO actionData,
+        BattlePresentationContext presentation
     );
 }

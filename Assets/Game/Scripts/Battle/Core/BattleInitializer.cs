@@ -5,11 +5,10 @@ public class BattleInitializer : MonoBehaviour
 {
     [SerializeField] private BattleManager battleManager;
 
-    [Header("Base Battle Object Prefab")]
-    // Sediakan 1 prefab kosong yang memiliki komponen `BattleUnit` di dalamnya
-    [SerializeField] private GameObject baseBattleUnitPrefab; 
+    [Header("Base Battle Unit Prefab")]
+    [SerializeField] private GameObject baseBattleUnitPrefab;
 
-    [Header("Spawn Anchors (Sediakan minimal 2 slot per tim)")]
+    [Header("Spawn Anchors")]
     [SerializeField] private Transform[] playerSpawnAnchors;
     [SerializeField] private Transform[] enemySpawnAnchors;
 
@@ -18,78 +17,93 @@ public class BattleInitializer : MonoBehaviour
 
     private void Start()
     {
-        // Jalankan validasi pengaman fallback jika player bypass UI select langsung ke scene ini
-        ValidateAndFallback();
+        InitializeBattle();
+    }
+
+    public void InitializeBattle()
+    {
+        if (!ValidateBattleSetup())
+            return;
+
+        spawnedPlayers.Clear();
+        spawnedEnemies.Clear();
 
         SpawnCombatants();
 
-        // Teruskan data dinamis ke komponen manager Anda yang lain
-        battleManager.InitializeBattle(spawnedPlayers, spawnedEnemies);
+        battleManager.InitializeBattle(
+            spawnedPlayers,
+            spawnedEnemies);
     }
 
-    private void ValidateAndFallback()
+    private bool ValidateBattleSetup()
     {
-        if (CharacterSelectionManager.Instance == null || !CharacterSelectionManager.Instance.IsSelectionValid())
+        if (BattleSetup.Instance == null)
         {
-            Debug.LogWarning("CharacterSelectionManager data invalid or missing! Menggunakan data fallback.");
-            // Di sini Anda bisa menulis kode manual memasukkan data ke CharacterSelectionManager 
-            // agar saat Anda menekan 'Play' langsung di Battle Scene untuk testing, game tidak error.
+            Debug.LogError("BattleSetup not found.");
+            return false;
         }
+
+        if (!BattleSetup.Instance.HasValidSelection())
+        {
+            Debug.LogError("BattleSetup contains invalid battle data.");
+            return false;
+        }
+
+        return true;
     }
 
     private void SpawnCombatants()
     {
-        var selectedUnits = CharacterSelectionManager.Instance.SelectedUnits;
-
         int playerIndex = 0;
         int enemyIndex = 0;
 
-        foreach (var config in selectedUnits)
+        foreach (var participant in BattleSetup.Instance.Participants)
         {
-            Transform currentAnchor = null;
+            Transform anchor = null;
 
-            // Tentukan posisi spawn berdasarkan Faksi Dinamis hasil pilihan user
-            if (config.assignedTeam == Team.Player)
+            if (participant.Team == Team.Player)
             {
-                if (playerIndex >= playerSpawnAnchors.Length) continue;
-                currentAnchor = playerSpawnAnchors[playerIndex];
-                playerIndex++;
+                if (playerIndex >= playerSpawnAnchors.Length)
+                {
+                    Debug.LogWarning("Not enough Player Spawn Anchors.");
+                    continue;
+                }
+
+                anchor = playerSpawnAnchors[playerIndex++];
             }
             else
             {
-                if (enemyIndex >= enemySpawnAnchors.Length) continue;
-                currentAnchor = enemySpawnAnchors[enemyIndex];
-                enemyIndex++;
+                if (enemyIndex >= enemySpawnAnchors.Length)
+                {
+                    Debug.LogWarning("Not enough Enemy Spawn Anchors.");
+                    continue;
+                }
+
+                anchor = enemySpawnAnchors[enemyIndex++];
             }
 
-            // 1. Spawn wadah utama (objek ber-komponen BattleUnit)
-            GameObject unitObj = Instantiate(baseBattleUnitPrefab, currentAnchor.position, currentAnchor.rotation);
-            BattleUnit battleUnit = unitObj.GetComponent<BattleUnit>();
+            GameObject obj = Instantiate(
+                baseBattleUnitPrefab,
+                anchor.position,
+                anchor.rotation);
 
-            // 2. Suntikkan Data-Driven ScriptableObject yang dipilih ke dalam BattleUnit runtime tersebut
-            battleUnit.UnitSO = config.unitSO;
-            battleUnit.InitializeUnit(); // Panggil fungsi setup internal data (HP, ATK, SPD, dll)
-            
-            // 3. OVERWRITE faksi tim aslinya agar mengikuti pilihan dinamis user! (Kunci Utama Test)
-            battleUnit.Team = config.assignedTeam;
+            BattleUnit battleUnit = obj.GetComponent<BattleUnit>();
 
-            // 4. Spawn Visual Grafis (Karakter dummy Mixamo Anda) di bawah objek wadah ini
-            if (config.unitSO.VisualPrefab != null)
+            if (battleUnit == null)
             {
-                GameObject visualObj = Instantiate(config.unitSO.VisualPrefab, unitObj.transform);
-                visualObj.transform.localPosition = Vector3.zero;
-                visualObj.transform.localRotation = Quaternion.identity;
+                Debug.LogError("Base prefab has no BattleUnit component.");
+                Destroy(obj);
+                continue;
             }
 
-            // 5. Masukkan ke dalam list faksi pertempuran
-            if (battleUnit.Team == Team.Player)
-            {
+            battleUnit.Setup(
+                participant.UnitSO,
+                participant.Team);
+
+            if (participant.Team == Team.Player)
                 spawnedPlayers.Add(battleUnit);
-            }
             else
-            {
                 spawnedEnemies.Add(battleUnit);
-            }
         }
     }
 }

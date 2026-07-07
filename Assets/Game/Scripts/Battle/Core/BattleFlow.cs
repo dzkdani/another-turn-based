@@ -77,36 +77,51 @@ public class BattleFlow
         EnemyTurnStarted?.Invoke();
     }
 
-    public IEnumerator PerformEnemyTurn(List<BattleUnit> players, List<BattleUnit> enemies)
+    public IEnumerator PerformEnemyTurn(
+        List<BattleUnit> players,
+        List<BattleUnit> enemies)
     {
-        if (CurrentUnit == null) yield break;
+        if (CurrentUnit == null)
+            yield break;
 
-        yield return new WaitForSeconds(1.0f); // Delay kecerdasan buatan membaca situasi
+        yield return new WaitForSeconds(1f);
 
-        // AI memilih target berdasarkan faksi Player yang masih hidup
-        BattleUnit target = aiSystem.ChooseTarget(CurrentUnit, players, enemies);
+        // AI memilih action
+        BattleActionSO action =
+            aiSystem.ChooseAction(CurrentUnit);
+
+        if (action == null)
+        {
+            EndCurrentTurn(players, enemies);
+            yield break;
+        }
+
+        // AI memilih target berdasarkan action
+        BattleUnit target =
+            aiSystem.ChooseTarget(
+                CurrentUnit,
+                action,
+                players,
+                enemies);
+
         if (target == null)
         {
             EndCurrentTurn(players, enemies);
             yield break;
         }
 
-        List<BattleUnit> targets = new List<BattleUnit> { target };
-        
-        // Ambil skill Attack milik unit secara dinamis
-        BattleActionSO attackAction = CurrentUnit.Data.Skills.FirstOrDefault(a => a.ActionType == BattleActionType.Attack);
-
-        if (attackAction == null)
+        List<BattleUnit> targets = new()
         {
-            EndCurrentTurn(players, enemies);
-            yield break;
-        }
+            target
+        };
 
-        // Memenuhi REQ: Panggil event OnAttack sebelum eksekusi visual
         CurrentUnit.OnAttack?.Invoke();
 
-        yield return actionSystem.ExecuteAction(CurrentUnit, targets, attackAction);
-        
+        yield return actionSystem.ExecuteAction(
+            CurrentUnit,
+            targets,
+            action);
+
         EndCurrentTurn(players, enemies);
     }
 

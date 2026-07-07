@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class AttackAction : BattleAction
 {
-    public override IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData)
+    public override IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData, BattlePresentationContext presentation)
     {
-        if (actionData.SFX != null) AudioSource.PlayClipAtPoint(actionData.SFX, attacker.transform.position);
+        presentation.Audio.Play(actionData.FX.CastSFX,attacker.Visual.CastPoint);
+
+        attacker.AnimationBridge.PlayAttackAnimation();
         yield return new WaitForSeconds(0.4f); // Menunggu sekuens animasi memukul
 
         foreach (var target in targets)
@@ -17,10 +19,11 @@ public class AttackAction : BattleAction
             int damage = DamageSystem.CalculateDamage(attacker, target, actionData.DamageMultiplier);
             target.TakeDamage(damage);
 
-            if (actionData.HitVFXPrefab != null)
-            {
-                Object.Instantiate(actionData.HitVFXPrefab, target.transform.position, Quaternion.identity);
-            }
+            target.AnimationBridge.PlayHitAnimation();
+
+            presentation.Audio.Play(
+                actionData.FX.HitSFX,
+                target.Visual.HitPoint);
         }
         yield return new WaitForSeconds(0.8f);
     }
