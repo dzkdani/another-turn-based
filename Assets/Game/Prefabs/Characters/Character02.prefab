@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1894227214501473318}
   - component: {fileID: 8257003595885935861}
   - component: {fileID: 3915114724445638441}
+  - component: {fileID: 6910620903931013752}
   m_Layer: 0
   m_Name: Character02
   m_TagString: Untagged
@@ -121,6 +122,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8461e2bdc8e2caf488081832c246a930, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleUnit
+  visual: {fileID: 0}
+  animationBridge: {fileID: 0}
 --- !u!114 &3915114724445638441
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,7 +136,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9974892a265aee7459c7cd43845a3858, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleAnimationBridge
-  useTimeline: 0
+  animator: {fileID: 0}
+  attackTrigger: Attack
+  hitTrigger: Hit
+  deathTrigger: Death
+--- !u!114 &6910620903931013752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9064111365153259777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56e649098d7fd7b4989d36e081a0860a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BattleUnitVisual
+  animator: {fileID: 0}
+  modelRoot: {fileID: 2806277985381322915}
+  hitPoint: {fileID: 2806277985381322915}
+  castPoint: {fileID: 2806277985381322915}
+  vfxRoot: {fileID: 2806277985381322915}
+  shakeDuration: 0.12
+  shakeStrength: 0.08
 --- !u!1001 &6272731251265947333
 PrefabInstance:
   m_ObjectHideFlags: 0

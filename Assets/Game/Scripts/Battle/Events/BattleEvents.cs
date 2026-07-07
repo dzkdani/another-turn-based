@@ -2,7 +2,8 @@ using System;
 
 public static class BattleEvents
 {
-    public static Action<BattleUnit> OnUnitDamaged;
+    public static Action<BattleUnit, BattleUnit, float> OnUnitDamaged;
+    public static Action<BattleUnit> OnUnitHPChanged;
     // public static Action<string> OnBattleLog;
     public static Action<BattleActionSO> OnActionSelected;
     public static Action<BattleActionSO> OnImmediateActionSelected;

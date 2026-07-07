@@ -4,6 +4,7 @@ public class BattlePresentationContext
 {
     public BattleVFXManager VFX { get; }
     public BattleAudioManager Audio { get; }
+    public PostProcessController PostProcess { get; }
 
     // public BattleTimelineManager Timeline { get; }
 
@@ -13,9 +14,11 @@ public class BattlePresentationContext
 
     public BattlePresentationContext(
         BattleVFXManager vfx,
-        BattleAudioManager audio)
+        BattleAudioManager audio,
+        PostProcessController postProcess)
     {
         VFX = vfx;
         Audio = audio;
+        PostProcess = postProcess;
     }
 }

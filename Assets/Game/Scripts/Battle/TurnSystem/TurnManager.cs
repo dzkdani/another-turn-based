@@ -156,4 +156,16 @@ public class TurnManager
         }
         DetermineNextTurnUnit();
     }
+
+    public void ModifyActionValue(BattleUnit unit, float delta)
+    {
+        if (unit == null)
+            return;
+
+        if (!unitAVRegistry.ContainsKey(unit))
+            return;
+
+        unitAVRegistry[unit] += delta;
+        unitAVRegistry[unit] = Mathf.Max(0f, unitAVRegistry[unit]);
+    }
 }
