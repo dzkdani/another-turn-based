@@ -50,42 +50,40 @@ public class BattleSetup : MonoBehaviour
         participants.Add(new BattleParticipant(unitSO, team));
     }
 
-    /// <summary>
-    /// Creates a simple 1 vs 1 battle.
-    /// </summary>
-    public void CreateBattle(UnitSO player, CharacterDatabase characterDatabase)
+    public int GetTeamCount(Team team)
     {
-        Clear();
+        int count = 0;
 
-        AddParticipant(player, Team.Player);
+        foreach (var participant in participants)
+        {
+            if (participant.Team == team)
+                count++;
+        }
 
-        UnitSO enemy = characterDatabase.GetRandomCharacter(player);
-        
-        AddParticipant(enemy, Team.Enemy);
+        return count;
     }
 
     public bool HasValidSelection()
     {
-        if (participants.Count == 0)
-            return false;
+        return GetTeamCount(Team.Player) == 2 &&
+               GetTeamCount(Team.Enemy) == 2;
+    }
 
-        bool hasPlayer = false;
-        bool hasEnemy = false;
+    public void CreateBattle(
+        IReadOnlyList<UnitSO> players,
+        EncounterDataSO encounter,
+        CharacterDatabase database)
+    {
+        Clear();
 
-        foreach (var participant in participants)
+        foreach (UnitSO player in players)
         {
-            switch (participant.Team)
-            {
-                case Team.Player:
-                    hasPlayer = true;
-                    break;
-
-                case Team.Enemy:
-                    hasEnemy = true;
-                    break;
-            }
+            AddParticipant(player, Team.Player);
         }
 
-        return hasPlayer && hasEnemy;
+        foreach (UnitSO enemy in encounter.GenerateEnemies(database))
+        {
+            AddParticipant(enemy, Team.Enemy);
+        }
     }
 }

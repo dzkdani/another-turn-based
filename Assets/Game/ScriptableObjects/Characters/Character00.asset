@@ -22,6 +22,6 @@ MonoBehaviour:
   Defense: 1
   Speed: 50
   CritChance: 0
-  Skills:
-  - {fileID: 11400000, guid: 7d4e03d6267f13c4192c8ab8f46ed920, type: 2}
+  BasicAttack: {fileID: 11400000, guid: 7d4e03d6267f13c4192c8ab8f46ed920, type: 2}
+  Skills: []
   AIBehavior: {fileID: 11400000, guid: 16c751e5abf004242ba6092794bac46f, type: 2}

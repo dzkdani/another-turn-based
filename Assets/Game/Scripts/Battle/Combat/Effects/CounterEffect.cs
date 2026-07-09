@@ -30,7 +30,7 @@ public class CounterEffect : IActionEffect
                 return;
             }
 
-            float counterDamage = DamageSystem.CalculateDamage(attacker, targetUnit, actionData.DamageMultiplier);
+            int counterDamage = (int)DamageSystem.CalculateDamage(attacker, targetUnit, actionData.DamageMultiplier);
             targetUnit.TakeDamage(attacker, counterDamage);
             presenter.PlayHitEffects(attacker, targetUnit, actionData, execution.Presentation);
 

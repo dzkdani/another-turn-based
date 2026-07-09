@@ -24,6 +24,7 @@ public class UnitSO : ScriptableObject
     public float CritChance = 0.05f;
 
     [Header("Battle")]
+    public BattleActionSO BasicAttack;
     public List<BattleActionSO> Skills;
 
     [Header("AI")]

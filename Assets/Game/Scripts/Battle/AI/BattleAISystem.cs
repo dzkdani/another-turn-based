@@ -9,7 +9,7 @@ public class BattleAISystem
             return null;
 
         if (unit.AIBehavior == null)
-            return unit.GetAction(BattleActionType.Attack);
+            return unit.BasicAttack;
 
         return unit.AIBehavior.SelectAction(unit);
     }

@@ -22,7 +22,7 @@ public class DamageEffect : IActionEffect
 
             presenter.PlayHitEffects(attacker, target, actionData, execution.Presentation);
 
-            float damage = DamageSystem.CalculateDamage(attacker, target, actionData.DamageMultiplier);
+            int damage = (int)DamageSystem.CalculateDamage(attacker, target, actionData.DamageMultiplier);
             target.TakeDamage(attacker, damage);
 
             execution.Presentation.PostProcess.SetEffectIntensity(

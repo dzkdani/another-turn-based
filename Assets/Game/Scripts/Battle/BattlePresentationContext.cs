@@ -5,6 +5,7 @@ public class BattlePresentationContext
     public BattleVFXManager VFX { get; }
     public BattleAudioManager Audio { get; }
     public PostProcessController PostProcess { get; }
+    public ScreenDistortionController Distortion { get; }
 
     // public BattleTimelineManager Timeline { get; }
 
@@ -15,10 +16,12 @@ public class BattlePresentationContext
     public BattlePresentationContext(
         BattleVFXManager vfx,
         BattleAudioManager audio,
-        PostProcessController postProcess)
+        PostProcessController postProcess,
+        ScreenDistortionController distortion)
     {
         VFX = vfx;
         Audio = audio;
         PostProcess = postProcess;
+        Distortion = distortion;
     }
 }

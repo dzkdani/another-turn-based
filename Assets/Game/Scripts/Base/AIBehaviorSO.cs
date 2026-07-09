@@ -3,8 +3,8 @@ using System.Linq;
 using UnityEngine;
 
 [CreateAssetMenu(
-    fileName = "AIBehavior",
-    menuName = "ScriptableObjects/AI/AI Behavior",
+    fileName = "newAIBehavior",
+    menuName = "Battle/AI Behavior",
     order = 1)]
 public class AIBehaviorSO : ScriptableObject
 {
@@ -24,19 +24,13 @@ public class AIBehaviorSO : ScriptableObject
         if (caster == null)
             return null;
 
-        // Current implementation:
-        // Always use Attack if available.
-        BattleActionSO attack =
-            caster.GetAction(BattleActionType.Attack);
+        if (caster.Skills.Count > 0)
+        {
+            return caster.Skills[
+                Random.Range(0, caster.Skills.Count)];
+        }
 
-        if (attack != null)
-            return attack;
-
-        // Fallback
-        IReadOnlyList<BattleActionSO> skills =
-            caster.GetAllActions();
-
-        return skills.Count > 0 ? skills[0] : null;
+        return caster.BasicAttack;
     }
 
     /// <summary>

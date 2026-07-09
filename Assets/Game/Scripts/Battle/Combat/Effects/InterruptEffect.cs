@@ -21,10 +21,11 @@ public class InterruptEffect : IActionEffect
             if (target == null || target.IsDead)
                 continue;
 
-            float damage = DamageSystem.CalculateDamage(
-                attacker,
-                target,
-                actionData.DamageMultiplier);
+            int damage = 
+                (int)DamageSystem.CalculateDamage(
+                    attacker,
+                    target,
+                    actionData.DamageMultiplier);
 
             target.TakeDamage(attacker, damage);
 

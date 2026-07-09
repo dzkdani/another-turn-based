@@ -10,6 +10,7 @@ public class TurnManager
     private readonly Dictionary<BattleUnit, float> unitAVRegistry = new();
     
     private BattleUnit currentUnitInTurn;
+    public BattleUnit CurrentUnit => currentUnitInTurn;
 
     public IReadOnlyList<BattleUnit> Units => allUnits;
 
@@ -27,12 +28,20 @@ public class TurnManager
                 {
                     allUnits.Add(unit);
                     // Hitung AV awal berdasarkan rumus HSR: 10000 / SPD
-                    unitAVRegistry[unit] = 10000f / unit.Data.CurrentSpd;
+                    unitAVRegistry[unit] = CalculateInitialAV(unit);
                 }
             }
         }
 
         DetermineNextTurnUnit();
+    }
+
+    private float CalculateInitialAV(BattleUnit unit)
+    {
+        if(unit.Data.CurrentSpd <= 0)
+            return float.MaxValue;
+
+        return 10000f / unit.Data.CurrentSpd;
     }
 
     public BattleUnit GetCurrentUnit()
@@ -59,7 +68,7 @@ public class TurnManager
         // 2. Reset Action Value untuk unit yang baru selesai bertindak tersebut
         if (previousUnit != null && !previousUnit.IsDead)
         {
-            unitAVRegistry[previousUnit] = 10000f / previousUnit.Data.CurrentSpd;
+            unitAVRegistry[previousUnit] = CalculateInitialAV(previousUnit);
         }
         else if (previousUnit != null && previousUnit.IsDead)
         {
@@ -107,12 +116,6 @@ public class TurnManager
         }
 
         currentUnitInTurn = nextUnit;
-
-        // Panggil Event OnTurnStart bawaan requirement utama Novastra
-        if (currentUnitInTurn != null)
-        {
-            currentUnitInTurn.OnTurnStart?.Invoke();
-        }
     }
 
     public void AddUnit(BattleUnit unit)
@@ -123,7 +126,7 @@ public class TurnManager
         allUnits.Add(unit);
         if (!unit.IsDead)
         {
-            unitAVRegistry[unit] = 10000f / unit.Data.CurrentSpd;
+            CalculateInitialAV(unit);
         }
     }
 
@@ -151,7 +154,7 @@ public class TurnManager
         {
             if (unit != null && !unit.IsDead)
             {
-                unitAVRegistry[unit] = 10000f / unit.Data.CurrentSpd;
+                CalculateInitialAV(unit);
             }
         }
         DetermineNextTurnUnit();

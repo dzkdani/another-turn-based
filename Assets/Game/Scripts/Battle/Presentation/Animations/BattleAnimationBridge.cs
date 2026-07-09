@@ -18,13 +18,9 @@ public class BattleAnimationBridge : MonoBehaviour
     private bool hitFrameReached;
     private bool animationFinished;
 
-    private void Awake()
+    public void Initialize()
     {
-        if (animator == null)
-            animator = GetComponent<Animator>();
-
-        if (animator == null)
-            animator = GetComponentInChildren<Animator>();
+        animator ??= GetComponentInChildren<Animator>();
 
         attackHash = Animator.StringToHash(attackTrigger);
         hitHash = Animator.StringToHash(hitTrigger);

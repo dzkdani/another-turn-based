@@ -60,20 +60,19 @@ public class BattleFlow
 
         Debug.Log($"{CurrentUnit.Data.Name} Turn");
 
-        // MEMUHI REQ: Memanggil Event OnTurnStart bawaan unit
-        CurrentUnit.OnTurnStart?.Invoke();
+        CurrentUnit.BeginTurn();
 
         // REFAKTOR KUNCI: Cek faksi dinamis, bukan enum tim statis dari SO
         if (CurrentUnit.Team == Team.Player)
         {
             CurrentState = BattleState.WaitingForCommand;
-            BattleEvents.OnPlayerTurn?.Invoke();
+            BattleEvents.OnPlayerTurnStarted?.Invoke(CurrentUnit);
             return;
         }
 
         // Jika faksi adalah Enemy, serahkan ke AI
         CurrentState = BattleState.Executing;
-        BattleEvents.OnEnemyTurn?.Invoke();
+        BattleEvents.OnEnemyTurnStarted?.Invoke(currentTarget);
         EnemyTurnStarted?.Invoke();
     }
 
@@ -115,7 +114,7 @@ public class BattleFlow
             target
         };
 
-        CurrentUnit.OnAttack?.Invoke();
+        CurrentUnit.Attack();
 
         yield return actionSystem.ExecuteAction(
             CurrentUnit,
@@ -166,8 +165,7 @@ public class BattleFlow
             yield break;
         }
 
-        // Memenuhi REQ: Panggil event OnAttack milik Player
-        CurrentUnit.OnAttack?.Invoke();
+        CurrentUnit.Attack();
 
         yield return actionSystem.ExecuteAction(CurrentUnit, targets, currentAction);
         EndCurrentTurn(players, enemies);
@@ -175,7 +173,8 @@ public class BattleFlow
 
     public void EndCurrentTurn(List<BattleUnit> players, List<BattleUnit> enemies)
     {
-        // REFAKTOR KUNCI: Cek kondisi menang/kalah berdasarkan sisa unit yang hidup di list dinamis
+        CurrentUnit.EndTurn();
+
         if (AreAllEnemiesDead(enemies))
         {
             CurrentState = BattleState.Victory;
@@ -190,7 +189,6 @@ public class BattleFlow
             return;
         }
 
-        // Maju ke antrean AV berikutnya di TurnManager HSR
         turnManager.AdvanceTurn();
         StartTurn();
     }

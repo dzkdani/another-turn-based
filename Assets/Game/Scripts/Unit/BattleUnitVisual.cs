@@ -27,13 +27,30 @@ public class BattleUnitVisual : MonoBehaviour
     public Transform CastPoint => castPoint;
     public Transform VFXRoot => vfxRoot;
 
-    private void Awake()
+    public void Initialize()
     {
-        if (modelRoot == null)
-            modelRoot = transform;
+        if (transform.childCount == 0)
+        {
+            Debug.LogError($"{name}: Visual prefab has no model child.");
+            return;
+        }
 
-        if (animator == null)
-            animator = GetComponentInChildren<Animator>();
+        modelRoot = transform.GetChild(0);
+
+        animator = modelRoot.GetComponentInChildren<Animator>();
+
+        hitPoint = modelRoot.Find("HitPoint");
+        castPoint = modelRoot.Find("CastPoint");
+        vfxRoot = modelRoot.Find("VFXRoot");
+
+        if (hitPoint == null)
+            Debug.LogError($"{name}: Missing HitPoint.");
+
+        if (castPoint == null)
+            Debug.LogError($"{name}: Missing CastPoint.");
+
+        if (vfxRoot == null)
+            Debug.LogError($"{name}: Missing VFXRoot.");
 
         originalLocalPosition = modelRoot.localPosition;
     }

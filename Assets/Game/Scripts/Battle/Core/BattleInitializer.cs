@@ -3,10 +3,16 @@ using System.Collections.Generic;
 
 public class BattleInitializer : MonoBehaviour
 {
+    [SerializeField] private EncounterDataSO testEncounter;
+
     [SerializeField] private BattleManager battleManager;
 
     [Header("Base Battle Unit Prefab")]
     [SerializeField] private GameObject baseBattleUnitPrefab;
+
+    [Header("Spawn Root")]
+    [SerializeField] private Transform playerRoot;
+    [SerializeField] private Transform enemyRoot;
 
     [Header("Spawn Anchors")]
     [SerializeField] private Transform[] playerSpawnAnchors;
@@ -37,19 +43,16 @@ public class BattleInitializer : MonoBehaviour
 
     private bool ValidateBattleSetup()
     {
-        if (BattleSetup.Instance == null)
-        {
-            Debug.LogError("BattleSetup not found.");
-            return false;
-        }
+        if (BattleSetup.Instance != null &&
+            BattleSetup.Instance.HasValidSelection()) 
+                return true;
 
-        if (!BattleSetup.Instance.HasValidSelection())
-        {
-            Debug.LogError("BattleSetup contains invalid battle data.");
-            return false;
-        }
+        if(testEncounter != null) return true;
 
-        return true;
+        if(battleManager != null) return true;
+
+        Debug.LogError("Battle components missing");
+        return false;
     }
 
     private void SpawnCombatants()
@@ -82,10 +85,17 @@ public class BattleInitializer : MonoBehaviour
                 anchor = enemySpawnAnchors[enemyIndex++];
             }
 
+            Transform parent =
+                participant.Team == Team.Player
+                ? playerRoot
+                : enemyRoot;
+
+
             GameObject obj = Instantiate(
                 baseBattleUnitPrefab,
                 anchor.position,
-                anchor.rotation);
+                anchor.rotation,
+                parent);
 
             BattleUnit battleUnit = obj.GetComponent<BattleUnit>();
 

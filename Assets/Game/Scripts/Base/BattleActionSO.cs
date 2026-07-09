@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Timeline;
 
 [CreateAssetMenu(
-    fileName = "New Battle Action",
+    fileName = "NewAction",
     menuName = "Battle/Action",
     order = 1)]
 public class BattleActionSO : ScriptableObject
@@ -30,7 +30,7 @@ public class BattleActionSO : ScriptableObject
     public float DamageMultiplier = 1f;
 
     [Min(0f)]
-    public float HealAmount = 0f;
+    public int HealAmount = 0;
 
     [Header("Turn Manipulation")]
     public bool ModifyTurnOrder;
@@ -41,15 +41,11 @@ public class BattleActionSO : ScriptableObject
 [System.Serializable]
 public class BattleActionFX
 {
+    public bool UseTimeline = true;
     public TimelineAsset Timeline;
-
     public float HitDelay = 0.35f;
-
     public GameObject CastVFXPrefab;
-
     public GameObject HitVFXPrefab;
-
     public AudioClip CastSFX;
-    
     public AudioClip HitSFX;
 }

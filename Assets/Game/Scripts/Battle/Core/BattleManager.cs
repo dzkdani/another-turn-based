@@ -1,123 +1,177 @@
 using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
-using System.Linq;
+using System.Collections.Generic;
 
 public class BattleManager : MonoBehaviour
 {
+    [Header("Presentation")]
     [SerializeField] private BattleVFXManager battleVFXManager;
     [SerializeField] private BattleAudioManager battleAudioManager;
-    [SerializeField] private PostProcessController battlePostProcessManager;
+    [SerializeField] private PostProcessController postProcessManager;
+    [SerializeField] private ScreenDistortionController screenDistortionManager;
 
     public BattlePresentationContext Presentation { get; private set; }
     public BattleExecutionContext Execution { get; private set; }
+
     public TurnManager TurnManager { get; private set; }
+
     public BattleState CurrentState => battleFlow.CurrentState;
     public BattleUnit CurrentUnit => battleFlow.CurrentUnit;
 
-    public List<BattleUnit> PlayerUnits;
-    public List<BattleUnit> EnemyUnits;
+    public IReadOnlyList<BattleUnit> PlayerUnits => playerUnits;
+    public IReadOnlyList<BattleUnit> EnemyUnits => enemyUnits;
+
+    private readonly List<BattleUnit> playerUnits = new();
+    private readonly List<BattleUnit> enemyUnits = new();
 
     private TargetSystem targetSystem;
     private ActionSystem actionSystem;
     private BattleAISystem aiSystem;
     private BattleFlow battleFlow;
 
-    private void OnEnable()
-    {
-        BattleEvents.OnAttackPressed += OnAttackPressed;
-        BattleEvents.OnRunPressed += OnRunPressed;
-        BattleEvents.OnTargetSelected += OnTargetSelected;
-        BattleEvents.OnActionSelected += OnActionSelected;
-        BattleEvents.OnImmediateActionSelected += OnImmediateActionSelected;
-    }
-
-    private void OnDisable()
-    {
-        BattleEvents.OnAttackPressed -= OnAttackPressed;
-        BattleEvents.OnRunPressed -= OnRunPressed;
-        BattleEvents.OnTargetSelected -= OnTargetSelected;
-        BattleEvents.OnActionSelected -= OnActionSelected;
-        BattleEvents.OnImmediateActionSelected -= OnImmediateActionSelected;
-        
-        if (battleFlow != null)
-            battleFlow.EnemyTurnStarted -= OnEnemyTurnStarted;
-    }
+    #region Unity
 
     private void Awake()
     {
-        // actionSystem = new ActionSystem();
+
         TurnManager = new TurnManager();
+
         targetSystem = new TargetSystem();
         aiSystem = new BattleAISystem();
+
+        if (battleVFXManager ==  null || 
+            battleAudioManager == null || 
+            postProcessManager == null || 
+            screenDistortionManager == null)
+        {
+            Debug.LogWarning("Missing Inspector Components");
+            return;
+        }
+
         Presentation = new BattlePresentationContext(
             battleVFXManager,
             battleAudioManager,
-            battlePostProcessManager);
+            postProcessManager,
+            screenDistortionManager);
+
         Execution = new BattleExecutionContext(
             TurnManager,
             targetSystem,
             Presentation);
+
         actionSystem = new ActionSystem(Execution);
-        
-        battleFlow = new BattleFlow(TurnManager, actionSystem, aiSystem, targetSystem);
-        battleFlow.EnemyTurnStarted += OnEnemyTurnStarted;
+
+        battleFlow = new BattleFlow(
+            TurnManager,
+            actionSystem,
+            aiSystem,
+            targetSystem);
+
+        battleFlow.EnemyTurnStarted += HandleEnemyTurnStarted;
     }
 
-    public void InitializeBattle(List<BattleUnit> players, List<BattleUnit> enemies)
+    private void OnEnable()
     {
-        PlayerUnits = players;
-        EnemyUnits = enemies;
-
-        battleFlow.StartBattle(PlayerUnits, EnemyUnits);
+        BattleEvents.OnActionSelected += HandleActionSelected;
+        BattleEvents.OnImmediateActionSelected += HandleImmediateActionSelected;
+        BattleEvents.OnTargetSelected += HandleTargetSelected;
     }
 
-    private void OnAttackPressed()
+    private void OnDisable()
     {
-        if(CurrentState != BattleState.WaitingForCommand) return;
+        BattleEvents.OnActionSelected -= HandleActionSelected;
+        BattleEvents.OnImmediateActionSelected -= HandleImmediateActionSelected;
+        BattleEvents.OnTargetSelected -= HandleTargetSelected;
 
-        // Ambil skill attack dari data unit runtime
-        BattleActionSO attackAction = CurrentUnit?.Data.Skills.FirstOrDefault(a => a.ActionType == BattleActionType.Attack);
-        BattleEvents.OnActionSelected?.Invoke(attackAction);
+        if (battleFlow != null)
+            battleFlow.EnemyTurnStarted -= HandleEnemyTurnStarted;
     }
 
-    private void OnRunPressed()
-    {
-        if(CurrentState != BattleState.WaitingForCommand) return;
+    #endregion
 
-        BattleActionSO runAction = CurrentUnit?.Data.Skills.FirstOrDefault(a => a.ActionType == BattleActionType.Run);
-        BattleEvents.OnActionSelected?.Invoke(runAction);
+    public void InitializeBattle(
+        List<BattleUnit> players,
+        List<BattleUnit> enemies)
+    {
+        playerUnits.Clear();
+        enemyUnits.Clear();
+
+        playerUnits.AddRange(players);
+        enemyUnits.AddRange(enemies);
+
+        battleFlow.StartBattle(playerUnits, enemyUnits);
     }
 
-    private void OnActionSelected(BattleActionSO action)
+    #region Event Handlers
+
+    private void HandleActionSelected(BattleActionSO action)
     {
+        if (CurrentState != BattleState.WaitingForCommand)
+            return;
+
+        if (action == null)
+            return;
+
         battleFlow.OnPlayerActionSelected(action);
     }
 
-    private void OnTargetSelected(BattleUnit target)
+    private void HandleTargetSelected(BattleUnit target)
     {
-        StartCoroutine(battleFlow.HandleTargetSelected(target, PlayerUnits, EnemyUnits));
+        if (CurrentState != BattleState.WaitingForTarget)
+            return;
+
+        StartCoroutine(
+            battleFlow.HandleTargetSelected(
+                target,
+                playerUnits,
+                enemyUnits));
     }
 
-    private void OnEnemyTurnStarted()
+    private void HandleEnemyTurnStarted()
     {
-        StartCoroutine(battleFlow.PerformEnemyTurn(PlayerUnits, EnemyUnits));
+        StartCoroutine(
+            battleFlow.PerformEnemyTurn(
+                playerUnits,
+                enemyUnits));
     }
 
-    private void OnImmediateActionSelected(BattleActionSO action)
+    private void HandleImmediateActionSelected(BattleActionSO action)
     {
-        StartCoroutine(ExecuteImmediateAction(action));
+        if (action == null)
+            return;
+
+        StartCoroutine(
+            ExecuteImmediateAction(action));
     }
+
+    #endregion
 
     private IEnumerator ExecuteImmediateAction(BattleActionSO action)
     {
-        List<BattleUnit> targets = actionSystem.ResolveTargets(
-            CurrentUnit, action, PlayerUnits, EnemyUnits, null, targetSystem);
+        List<BattleUnit> targets =
+            actionSystem.ResolveTargets(
+                CurrentUnit,
+                action,
+                playerUnits,
+                enemyUnits,
+                null,
+                targetSystem);
 
-        CurrentUnit.OnAttack?.Invoke(); // Picu event serang
+        if (targets.Count == 0)
+        {
+            battleFlow.EndCurrentTurn(playerUnits, enemyUnits);
+            yield break;
+        }
 
-        yield return actionSystem.ExecuteAction(CurrentUnit, targets, action);
+        CurrentUnit.Attack();
 
-        battleFlow.EndCurrentTurn(PlayerUnits, EnemyUnits);
+        yield return actionSystem.ExecuteAction(
+            CurrentUnit,
+            targets,
+            action);
+
+        battleFlow.EndCurrentTurn(
+            playerUnits,
+            enemyUnits);
     }
 }

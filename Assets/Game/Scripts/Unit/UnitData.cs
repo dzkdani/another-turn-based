@@ -1,14 +1,16 @@
-using System.Collections.Generic;
-
 public class UnitData
 {
     public string Name;
-    public float MaxHP;
-    public float CurrentHP;
-    public float CurrentMP;
-    public float CurrentAtk;
+
+    public int MaxHP;
+    public int CurrentHP;
+
+    public int CurrentAtk;
+    public int CurrentDef;
+    public int CurrentSpd;
+
     public float CurrentCritChance;
-    public float CurrentDef;
-    public float CurrentSpd;
-    public List<BattleActionSO> Skills;
+
+    public float HPPercent =>
+        MaxHP <= 0 ? 0 : (float)CurrentHP / MaxHP;
 }
