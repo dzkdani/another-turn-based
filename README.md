@@ -264,13 +264,13 @@ Dengan pendekatan ini, sistem Visual Novel tetap memanfaatkan kestabilan Fungus 
 
 # 📷 Screenshots
 
-> Tambahkan screenshot Battle, Character Select, dan Visual Novel di sini.
+> SS
 
 ---
 
 # 🎥 Demo
 
-> Tambahkan link video demo (1–3 menit).
+> [Yt](https://youtu.be/SznV1ZiPnqw)
 
 ---
 
