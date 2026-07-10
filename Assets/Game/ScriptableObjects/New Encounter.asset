@@ -15,3 +15,9 @@ MonoBehaviour:
   encounterType: 0
   enemyCount: 2
   fixedEnemies: []
+  PlayerUnits:
+  - {fileID: 11400000, guid: 3057f0018e5f45f4098b195f32aca59b, type: 2}
+  - {fileID: 11400000, guid: 3057f0018e5f45f4098b195f32aca59b, type: 2}
+  EnemyUnits:
+  - {fileID: 11400000, guid: 73a9dccfa21bc474a9597a3bae242305, type: 2}
+  - {fileID: 11400000, guid: 73a9dccfa21bc474a9597a3bae242305, type: 2}

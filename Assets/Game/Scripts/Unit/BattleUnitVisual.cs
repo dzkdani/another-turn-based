@@ -26,6 +26,8 @@ public class BattleUnitVisual : MonoBehaviour
     public Transform HitPoint => hitPoint;
     public Transform CastPoint => castPoint;
     public Transform VFXRoot => vfxRoot;
+    [SerializeField] private Transform cameraFocusPoint;
+    public Transform CameraFocusPoint => cameraFocusPoint;
 
     public void Initialize()
     {

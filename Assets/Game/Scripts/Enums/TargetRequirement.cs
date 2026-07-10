@@ -1,5 +1,13 @@
 public enum TargetRequirement
 {
     None,
-    Required
+
+    Enemy,
+    Ally,
+    Self,
+
+    DeadEnemy,
+    DeadAlly,
+
+    Any
 }

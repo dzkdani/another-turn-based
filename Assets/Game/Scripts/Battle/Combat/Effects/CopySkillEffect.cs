@@ -15,12 +15,12 @@ public class CopySkillEffect : IActionEffect
         }
 
         BattleUnit target = targets[0];
-        if (target?.Skills == null) yield break;
+        if (target?.Actions == null) yield break;
 
         presenter.PlayCastEffects(attacker, actionData, execution.Presentation);
         yield return new WaitForSeconds(0.5f);
 
-        BattleActionSO copiedSkillData = target.Skills
+        BattleActionSO copiedSkillData = target.Actions
             .FirstOrDefault(s => s != null && s.ActionType != BattleActionType.Run && s.ActionType != BattleActionType.CopySkill);
 
         if (copiedSkillData != null)

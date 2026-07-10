@@ -20,6 +20,7 @@ public class BattleInitializer : MonoBehaviour
 
     private readonly List<BattleUnit> spawnedPlayers = new();
     private readonly List<BattleUnit> spawnedEnemies = new();
+    private List<BattleParticipant> participants;
 
     private void Start()
     {
@@ -34,7 +35,16 @@ public class BattleInitializer : MonoBehaviour
         spawnedPlayers.Clear();
         spawnedEnemies.Clear();
 
-        SpawnCombatants();
+        if (testEncounter != null)
+        {
+            participants = GetParticipants();
+        }
+        else
+        {
+            participants = new List<BattleParticipant>(BattleSetup.Instance.Participants);
+        }
+
+        SpawnCombatants(participants);
 
         battleManager.InitializeBattle(
             spawnedPlayers,
@@ -55,12 +65,12 @@ public class BattleInitializer : MonoBehaviour
         return false;
     }
 
-    private void SpawnCombatants()
+    private void SpawnCombatants(List<BattleParticipant> participants)
     {
         int playerIndex = 0;
         int enemyIndex = 0;
 
-        foreach (var participant in BattleSetup.Instance.Participants)
+        foreach (var participant in participants)
         {
             Transform anchor = null;
 
@@ -85,11 +95,9 @@ public class BattleInitializer : MonoBehaviour
                 anchor = enemySpawnAnchors[enemyIndex++];
             }
 
-            Transform parent =
-                participant.Team == Team.Player
+            Transform parent = participant.Team == Team.Player
                 ? playerRoot
                 : enemyRoot;
-
 
             GameObject obj = Instantiate(
                 baseBattleUnitPrefab,
@@ -106,14 +114,48 @@ public class BattleInitializer : MonoBehaviour
                 continue;
             }
 
-            battleUnit.Setup(
-                participant.UnitSO,
-                participant.Team);
+            Transform targetRoot = battleUnit.Team == Team.Player
+                ? enemyRoot
+                : playerRoot;
+
+            battleUnit.Visual.FaceTarget(targetRoot);
+
+            battleUnit.Setup(participant.UnitSO, participant.Team);
 
             if (participant.Team == Team.Player)
                 spawnedPlayers.Add(battleUnit);
             else
                 spawnedEnemies.Add(battleUnit);
         }
+    }
+
+    private List<BattleParticipant> GetParticipants()
+    {
+        if (BattleSetup.Instance != null)
+        {
+            return (List<BattleParticipant>)BattleSetup.Instance.Participants;
+        }
+
+        if (testEncounter == null)
+        {
+            Debug.LogError("No BattleSetup found and no Test Encounter assigned.");
+            return new List<BattleParticipant>();
+        }
+
+        List<BattleParticipant> participants = new();
+
+        foreach (UnitSO player in testEncounter.PlayerUnits)
+        {
+            if (player != null)
+                participants.Add(new BattleParticipant(player, Team.Player));
+        }
+
+        foreach (UnitSO enemy in testEncounter.EnemyUnits)
+        {
+            if (enemy != null)
+                participants.Add(new BattleParticipant(enemy, Team.Enemy));
+        }
+
+        return participants;
     }
 }

@@ -1,51 +1,53 @@
-using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using System;
 
 public class BattleInputController : MonoBehaviour
 {
-    private TaskCompletionSource<PlayerDecision> pendingDecision;
+    [SerializeField] private Camera battleCamera;
 
-    /// <summary>
-    /// Called by BattleFlow when a player turn begins.
-    /// Waits until the UI submits a decision.
-    /// </summary>
-    public async Task<PlayerDecision> WaitForPlayerDecision(BattleUnit actingUnit)
+    private TargetSystem targetSystem;
+
+    public void Initialize(TargetSystem targetSystem)
     {
-        if (pendingDecision != null)
-        {
-            Debug.LogWarning("Already waiting for player input.");
-            return null;
-        }
-
-        pendingDecision = new TaskCompletionSource<PlayerDecision>();
-
-        return await pendingDecision.Task;
+        this.targetSystem = targetSystem;
     }
 
-    /// <summary>
-    /// Called by the UI when the player has finished choosing.
-    /// </summary>
-    public void SubmitDecision(PlayerDecision decision)
+    private void Awake()
     {
-        if (pendingDecision == null)
+        if (battleCamera == null)
+            battleCamera = Camera.main;
+    }
+
+    private void Update()
+    {
+        if (targetSystem == null)
             return;
 
-        pendingDecision.TrySetResult(decision);
-        pendingDecision = null;
-    }
-
-    /// <summary>
-    /// Clears any pending decision.
-    /// Useful if the battle ends while waiting for input.
-    /// </summary>
-    public void CancelWaiting()
-    {
-        if (pendingDecision == null)
+        if (!targetSystem.IsSelecting)
             return;
 
-        pendingDecision.TrySetCanceled();
-        pendingDecision = null;
-    }
+        if (!Mouse.current.leftButton.wasPressedThisFrame)
+            return;
 
-    public bool IsWaitingForInput => pendingDecision != null;
+        Ray ray = battleCamera.ScreenPointToRay(
+            Mouse.current.position.ReadValue());
+
+        if (!Physics.Raycast(ray, out RaycastHit hit))
+            return;
+
+        BattleUnitClickHandler clickHandler =
+            hit.collider.GetComponent<BattleUnitClickHandler>();
+
+        if (clickHandler == null)
+            return;
+
+        clickHandler.Click();
+
+        BattleUnit unit = clickHandler.BattleUnit;
+
+        if (unit == null || unit.IsDead)
+            return;
+
+    }
 }

@@ -6,7 +6,7 @@ public class ActionEffectFactory
 {
     private static readonly Dictionary<BattleActionType, Type> effectTypeMap = new()
     {
-        { BattleActionType.Attack, typeof(DamageEffect) },
+        { BattleActionType.Attack, typeof(AttackEffect) },
         { BattleActionType.Heal, typeof(HealEffect) },
         { BattleActionType.Interrupt, typeof(InterruptEffect) },
         { BattleActionType.Counter, typeof(CounterEffect) },

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public static class BattleEvents
 {
@@ -58,4 +59,10 @@ public static class BattleEvents
     /// Fired when a unit dies.
     /// </summary>
     public static Action<BattleUnit> OnUnitDied;
+
+    public static Action<IReadOnlyList<BattleUnit>> OnTargetSelectionStarted;
+
+    public static Action OnTargetSelectionCancelled;
+
+    public static Action<IReadOnlyList<BattleUnit>> OnPreviewTargetsChanged;
 }

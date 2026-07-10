@@ -23,6 +23,9 @@ public class EncounterDataSO : ScriptableObject
     [SerializeField]
     private List<UnitSO> fixedEnemies = new();
 
+    public List<UnitSO> PlayerUnits = new();
+    public List<UnitSO> EnemyUnits = new();
+
     public IReadOnlyList<UnitSO> GenerateEnemies(CharacterDatabase database)
     {
         List<UnitSO> enemies = new();

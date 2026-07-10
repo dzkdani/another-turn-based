@@ -21,16 +21,16 @@ public class AIBehaviorSO : ScriptableObject
     /// </summary>
     public virtual BattleActionSO SelectAction(BattleUnit caster)
     {
+        BattleUnit unit = caster;
+
         if (caster == null)
-            return null;
-
-        if (caster.Skills.Count > 0)
         {
-            return caster.Skills[
-                Random.Range(0, caster.Skills.Count)];
+            Debug.LogWarning("AI can't find unit's actions");
+            return null;
         }
-
-        return caster.BasicAttack;
+        
+        return caster.Actions[
+                Random.Range(0, caster.Actions.Count)];
     }
 
     /// <summary>

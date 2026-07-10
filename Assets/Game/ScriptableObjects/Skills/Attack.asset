@@ -13,10 +13,20 @@ MonoBehaviour:
   m_Name: Attack
   m_EditorClassIdentifier: Assembly-CSharp::BattleActionSO
   ActionName: Attack
+  Description: Basic Attack very basic indeed..
+  Icon: {fileID: 0}
   ActionType: 0
   TargetType: 0
   TargetRequirement: 1
-  Multiplier: 1
-  BaseHealValue: 0
-  SFX: {fileID: 0}
-  HitVFXPrefab: {fileID: 0}
+  FX:
+    UseTimeline: 1
+    Timeline: {fileID: 0}
+    HitDelay: 0.35
+    CastVFXPrefab: {fileID: 0}
+    HitVFXPrefab: {fileID: 0}
+    CastSFX: {fileID: 0}
+    HitSFX: {fileID: 0}
+  DamageMultiplier: 1
+  HealAmount: 0
+  ModifyTurnOrder: 0
+  ActionValueModifier: 0

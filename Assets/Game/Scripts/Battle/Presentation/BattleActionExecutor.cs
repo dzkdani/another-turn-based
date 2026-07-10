@@ -11,34 +11,45 @@ public class BattleActionExecutor
         this.execution = execution;
     }
 
-    public IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData)
+    public IEnumerator Execute(
+        BattleUnit attacker,
+        List<BattleUnit> targets,
+        BattleActionSO actionData)
     {
-        if (actionData == null)
+        if (attacker == null ||
+            actionData == null ||
+            targets == null ||
+            targets.Count == 0)
         {
             yield break;
         }
 
-        IActionEffect effect = ActionEffectFactory.CreateEffect(actionData.ActionType);
+        IActionEffect effect =
+            ActionEffectFactory.CreateEffect(actionData.ActionType);
 
         if (effect == null)
         {
-            Debug.LogError($"No effect found for action type {actionData.ActionType}.");
+            Debug.LogError($"No IActionEffect registered for {actionData.ActionType}");
             yield break;
         }
 
-        yield return effect.Execute(attacker, targets, actionData, execution);
+        yield return effect.Execute(
+            attacker,
+            targets,
+            actionData,
+            execution);
 
-        if (actionData.ModifyTurnOrder)
+        if (!actionData.ModifyTurnOrder)
+            yield break;
+
+        foreach (BattleUnit target in targets)
         {
-            foreach (BattleUnit target in targets)
-            {
-                if (target == null || target.IsDead)
-                    continue;
+            if (target == null || target.IsDead)
+                continue;
 
-                execution.TurnManager.ModifyActionValue(
-                    target,
-                    actionData.ActionValueModifier);
-            }
+            execution.TurnManager.ModifyActionValue(
+                target,
+                actionData.ActionValueModifier);
         }
     }
 }

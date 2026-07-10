@@ -9,7 +9,10 @@ public class BattleAISystem
             return null;
 
         if (unit.AIBehavior == null)
-            return unit.BasicAttack;
+        {
+            Debug.LogWarning("AI can't find unit's actions");
+            return null;
+        }
 
         return unit.AIBehavior.SelectAction(unit);
     }

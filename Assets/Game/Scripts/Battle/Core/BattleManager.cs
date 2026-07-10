@@ -1,14 +1,18 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class BattleManager : MonoBehaviour
 {
     [Header("Presentation")]
+    [SerializeField] private BattleUIController battleUIController;
     [SerializeField] private BattleVFXManager battleVFXManager;
     [SerializeField] private BattleAudioManager battleAudioManager;
     [SerializeField] private PostProcessController postProcessManager;
     [SerializeField] private ScreenDistortionController screenDistortionManager;
+    [SerializeField] private BattleCameraManager battleCameraManager;
+    [SerializeField] private BattleInputController battleInputController;
 
     public BattlePresentationContext Presentation { get; private set; }
     public BattleExecutionContext Execution { get; private set; }
@@ -33,10 +37,12 @@ public class BattleManager : MonoBehaviour
 
     private void Awake()
     {
-
         TurnManager = new TurnManager();
 
         targetSystem = new TargetSystem();
+
+        battleInputController.Initialize(targetSystem);
+
         aiSystem = new BattleAISystem();
 
         if (battleVFXManager ==  null || 
@@ -52,7 +58,8 @@ public class BattleManager : MonoBehaviour
             battleVFXManager,
             battleAudioManager,
             postProcessManager,
-            screenDistortionManager);
+            screenDistortionManager,
+            battleCameraManager);
 
         Execution = new BattleExecutionContext(
             TurnManager,
@@ -65,7 +72,8 @@ public class BattleManager : MonoBehaviour
             TurnManager,
             actionSystem,
             aiSystem,
-            targetSystem);
+            targetSystem,
+            battleUIController);
 
         battleFlow.EnemyTurnStarted += HandleEnemyTurnStarted;
     }
@@ -74,14 +82,14 @@ public class BattleManager : MonoBehaviour
     {
         BattleEvents.OnActionSelected += HandleActionSelected;
         BattleEvents.OnImmediateActionSelected += HandleImmediateActionSelected;
-        BattleEvents.OnTargetSelected += HandleTargetSelected;
+        BattleUnitClickHandler.OnUnitClicked += HandleUnitClicked;
     }
 
     private void OnDisable()
     {
         BattleEvents.OnActionSelected -= HandleActionSelected;
         BattleEvents.OnImmediateActionSelected -= HandleImmediateActionSelected;
-        BattleEvents.OnTargetSelected -= HandleTargetSelected;
+        BattleUnitClickHandler.OnUnitClicked -= HandleUnitClicked;
 
         if (battleFlow != null)
             battleFlow.EnemyTurnStarted -= HandleEnemyTurnStarted;
@@ -100,6 +108,7 @@ public class BattleManager : MonoBehaviour
         enemyUnits.AddRange(enemies);
 
         battleFlow.StartBattle(playerUnits, enemyUnits);
+        battleUIController.Initialize(playerUnits, enemyUnits);
     }
 
     #region Event Handlers
@@ -113,16 +122,24 @@ public class BattleManager : MonoBehaviour
             return;
 
         battleFlow.OnPlayerActionSelected(action);
+
+        targetSystem.BeginSelection(
+            CurrentUnit,
+            action,
+            playerUnits,
+            enemyUnits);
     }
 
-    private void HandleTargetSelected(BattleUnit target)
+    private void HandleUnitClicked(BattleUnit unit)
     {
-        if (CurrentState != BattleState.WaitingForTarget)
+        bool valid = targetSystem.SelectTarget(unit);
+        
+        if (!valid)
             return;
 
         StartCoroutine(
             battleFlow.HandleTargetSelected(
-                target,
+                unit,
                 playerUnits,
                 enemyUnits));
     }

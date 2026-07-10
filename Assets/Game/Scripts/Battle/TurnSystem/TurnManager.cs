@@ -116,6 +116,8 @@ public class TurnManager
         }
 
         currentUnitInTurn = nextUnit;
+
+        Debug.Log($"Next Unit : {currentUnitInTurn.Data.Name} {currentUnitInTurn.Team}");
     }
 
     public void AddUnit(BattleUnit unit)

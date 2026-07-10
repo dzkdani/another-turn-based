@@ -25,7 +25,7 @@ public class UnitSO : ScriptableObject
 
     [Header("Battle")]
     public BattleActionSO BasicAttack;
-    public List<BattleActionSO> Skills;
+    public List<BattleActionSO> Actions;
 
     [Header("AI")]
     public AIBehaviorSO AIBehavior;

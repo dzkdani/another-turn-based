@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using DG.Tweening;
-using UnityEngine.EventSystems;
+using System;
 
 public class UnitHUD : MonoBehaviour
 {
@@ -10,8 +10,10 @@ public class UnitHUD : MonoBehaviour
     [SerializeField] TMP_Text hpText;
     [SerializeField] Slider hpBar;
     [SerializeField] private Image selectionImage;
+    public event Action<BattleUnit> OnSelected;
     private Button button;
     private BattleUnit unit;
+    public BattleUnit Unit => unit;
 
     private void Awake()
     {
@@ -25,6 +27,19 @@ public class UnitHUD : MonoBehaviour
         if (hpText == null) Debug.LogWarning($"{name} is missing hpText reference.");
         if (hpBar == null) Debug.LogWarning($"{name} is missing hpBar reference.");
         if (selectionImage == null) Debug.LogWarning($"{name} is missing selectionImage reference.");
+    }
+    
+    void OnEnable()
+    {
+        BattleEvents.OnUnitHPChanged += OnDamaged;
+        BattleEvents.OnTargetSelected += OnTargetSelected;
+    }
+
+    void OnDisable()
+    {
+        button.onClick.RemoveAllListeners();
+        BattleEvents.OnUnitHPChanged -= OnDamaged;
+        BattleEvents.OnTargetSelected -= OnTargetSelected;
     }
 
     public void Setup(BattleUnit target)
@@ -55,19 +70,6 @@ public class UnitHUD : MonoBehaviour
         Refresh();
     }
 
-    void OnEnable()
-    {
-        // BattleEvents.OnUnitDamaged += OnDamaged;
-        BattleEvents.OnTargetSelected += OnTargetSelected;
-    }
-
-    void OnDisable()
-    {
-        button.onClick.RemoveAllListeners();
-        // BattleEvents.OnUnitDamaged -= OnDamaged;
-        BattleEvents.OnTargetSelected -= OnTargetSelected;
-    }
-
     void OnDamaged(BattleUnit damaged)
     {
         if(damaged != unit)
@@ -84,6 +86,11 @@ public class UnitHUD : MonoBehaviour
         }
     }
 
+    public void SetInteractable(bool value)
+    {
+        button.interactable = value;
+    }
+
     private void OnTargetSelected(BattleUnit selectedUnit)
     {
         SetSelected(selectedUnit == unit);
@@ -91,10 +98,7 @@ public class UnitHUD : MonoBehaviour
 
     private void SelectThisUnit()
     {
-        if (unit != null)
-        {
-            BattleEvents.OnTargetSelected?.Invoke(unit);
-        }
+        OnSelected?.Invoke(unit);
     }
 
     void Refresh()

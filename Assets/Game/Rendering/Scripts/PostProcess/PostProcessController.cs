@@ -86,7 +86,7 @@ public class PostProcessController : MonoBehaviour
     [Button("Low HP 25%")]
     private void DebugLowHP()
     {
-        SetEffectIntensity(0.05f);
+        SetIntensity(0.05f);
     }
 
 #endif
@@ -214,7 +214,7 @@ public class PostProcessController : MonoBehaviour
         exposureTween = exposureSequence;
     }
 
-    public void SetEffectIntensity(float factor)
+    public void SetIntensity(float factor)
     {
         float intensity =
             Mathf.Clamp01(

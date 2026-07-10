@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 public class BattleUnit : MonoBehaviour
 {
@@ -13,7 +14,6 @@ public class BattleUnit : MonoBehaviour
     public event Action OnTurnEnd;
     public event Action OnAttack;
     public event Action<BattleUnit, BattleUnit, float> OnTakeDamage;
-    public event Action OnDeath;
 
     public GameObject VisualInstance { get; private set; }
 
@@ -45,8 +45,8 @@ public class BattleUnit : MonoBehaviour
         if (visual == null)
             visual = GetComponent<BattleUnitVisual>();
 
-        if (animationBridge == null)
-            animationBridge = GetComponent<BattleAnimationBridge>();
+        if (visual == null)
+            Debug.LogWarning($"{Definition.Name} VisualPrefab has no BattleUnitVisual."); 
     }
 
     private void InitializeData()
@@ -87,23 +87,22 @@ public class BattleUnit : MonoBehaviour
 
         VisualInstance.transform.localPosition = Vector3.zero;
         VisualInstance.transform.localRotation = Quaternion.identity;
+        
+        if (animationBridge == null)
+            animationBridge = GetComponentInChildren<BattleAnimationBridge>();
+        if (animationBridge == null)
+            Debug.LogWarning($"{Definition.Name} VisualPrefab has no BattleAnimationBridge.");
+            
 
-        visual = VisualInstance.GetComponentInChildren<BattleUnitVisual>();
         if (visual != null)
             visual.Initialize();
-        animationBridge = VisualInstance.GetComponentInChildren<BattleAnimationBridge>();
         if (animationBridge != null)
             animationBridge.Initialize();
 
-        if (visual == null)
-            Debug.LogWarning($"{Definition.Name} VisualPrefab has no BattleUnitVisual.");
-
-        if (animationBridge == null)
-            Debug.LogWarning($"{Definition.Name} VisualPrefab has no BattleAnimationBridge.");
     }
 
     public BattleActionSO BasicAttack => Definition.BasicAttack;
-    public IReadOnlyList<BattleActionSO> Skills => Definition.Skills;
+    public IReadOnlyList<BattleActionSO> Actions => Definition.Actions;
     public AIBehaviorSO AIBehavior => Definition.AIBehavior;
 
     public void BeginTurn()
@@ -148,9 +147,11 @@ public class BattleUnit : MonoBehaviour
             this,
             finalDamage);
 
+        Debug.Log($"{Data.Name} took {rawDamage} damage from {attacker.Data.Name}");
+
         if (Data.CurrentHP <= 0)
         {
-            Die();
+            StartCoroutine(Die());
         }
     }
 
@@ -168,15 +169,17 @@ public class BattleUnit : MonoBehaviour
         BattleEvents.OnUnitHPChanged?.Invoke(this);
     }
 
-    private void Die()
+    private IEnumerator Die()
     {
         if (IsDead)
-            return;
+            yield break;
 
         IsDead = true;
 
-        OnDeath?.Invoke();
+        yield return animationBridge.PlayDieUntilFinished();
 
         BattleEvents.OnUnitDied?.Invoke(this);
+
+        gameObject.SetActive(false);
     }
 }

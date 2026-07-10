@@ -5,19 +5,6 @@ public class BattleSetup : MonoBehaviour
 {
     public static BattleSetup Instance { get; private set; }
 
-    [System.Serializable]
-    public class BattleParticipant
-    {
-        public UnitSO UnitSO;
-        public Team Team;
-
-        public BattleParticipant(UnitSO unitSO, Team team)
-        {
-            UnitSO = unitSO;
-            Team = team;
-        }
-    }
-
     public IReadOnlyList<BattleParticipant> Participants => participants;
 
     private readonly List<BattleParticipant> participants = new();
@@ -85,5 +72,18 @@ public class BattleSetup : MonoBehaviour
         {
             AddParticipant(enemy, Team.Enemy);
         }
+    }
+}
+
+[System.Serializable]
+public class BattleParticipant
+{
+    public UnitSO UnitSO;
+    public Team Team;
+
+    public BattleParticipant(UnitSO unitSO, Team team)
+    {
+        UnitSO = unitSO;
+        Team = team;
     }
 }

@@ -20,7 +20,7 @@ public class BattleAnimationBridge : MonoBehaviour
 
     public void Initialize()
     {
-        animator ??= GetComponentInChildren<Animator>();
+        animator = animator != null ? animator : GetComponent<Animator>();
 
         attackHash = Animator.StringToHash(attackTrigger);
         hitHash = Animator.StringToHash(hitTrigger);
@@ -47,10 +47,11 @@ public class BattleAnimationBridge : MonoBehaviour
         animator.SetTrigger(hitHash);
     }
 
-    public void PlayDeath()
+    public IEnumerator PlayDieUntilFinished()
     {
         PrepareAnimation();
         animator.SetTrigger(deathHash);
+        yield return new WaitUntil(() => animationFinished);
     }
 
     private void PrepareAnimation()

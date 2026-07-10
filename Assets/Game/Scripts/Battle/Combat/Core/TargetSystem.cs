@@ -1,18 +1,132 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public class TargetSystem
 {
     private BattleUnit selectedTarget;
 
-    public void SetSelectedTarget(BattleUnit target)
+    private readonly List<BattleUnit> validTargets = new();
+
+    public bool IsSelecting { get; private set; }
+
+    public void BeginSelection(
+        BattleUnit caster,
+        BattleActionSO action,
+        List<BattleUnit> players,
+        List<BattleUnit> enemies)
     {
+        validTargets.Clear();
+
+        selectedTarget = null;
+
+        IsSelecting = true;
+
+        validTargets.AddRange(
+            GetSelectableTargets(
+                caster,
+                action.TargetType,
+                players,
+                enemies));
+
+        BattleEvents.OnTargetSelectionStarted?.Invoke(validTargets);
+
+        if (validTargets.Count > 0)
+        {
+            selectedTarget = validTargets[0];
+
+            BattleEvents.OnTargetSelected?.Invoke(selectedTarget);
+        }
+    }
+
+    public List<BattleUnit> GetSelectableTargets(
+        BattleUnit caster,
+        TargetType type,
+        List<BattleUnit> players,
+        List<BattleUnit> enemies)
+    {
+        List<BattleUnit> allUnits = new();
+
+        if (players != null)
+            allUnits.AddRange(players);
+
+        if (enemies != null)
+            allUnits.AddRange(enemies);
+
+        allUnits = allUnits
+            .Where(x => x != null && !x.IsDead)
+            .ToList();
+
+        List<BattleUnit> allies = allUnits
+            .Where(x => x.Team == caster.Team)
+            .ToList();
+
+        List<BattleUnit> enemiesOfCaster = allUnits
+            .Where(x => x.Team != caster.Team)
+            .ToList();
+
+        switch (type)
+        {
+            case TargetType.SingleEnemy:
+            case TargetType.AllEnemies:
+                return enemiesOfCaster;
+
+            case TargetType.SingleAlly:
+            case TargetType.AllAllies:
+                return allies;
+
+            case TargetType.Self:
+                return new List<BattleUnit> { caster };
+
+            case TargetType.Everyone:
+                return allUnits;
+
+            default:
+                return new List<BattleUnit>();
+        }
+    }
+
+    public bool CanSelect(BattleUnit target)
+    {
+        return target != null &&
+               validTargets.Contains(target);
+    }
+
+    public bool SelectTarget(BattleUnit target)
+    {
+        if (!CanSelect(target))
+            return false;
+
         selectedTarget = target;
+
+        BattleEvents.OnTargetSelected?.Invoke(target);
+
+        return true;
+    }
+
+    public void RemoveTarget(BattleUnit unit)
+    {
+        validTargets.Remove(unit);
+
+        if (selectedTarget == unit)
+            selectedTarget = null;
     }
 
     public void ClearSelectedTarget()
     {
         selectedTarget = null;
+
+        validTargets.Clear();
+
+        IsSelecting = false;
+    }
+
+    public void SetSelectedTarget(BattleUnit target)
+    {
+        if (!CanSelect(target))
+            return;
+
+        selectedTarget = target;
     }
 
     public List<BattleUnit> GetTargets(
@@ -22,55 +136,44 @@ public class TargetSystem
         List<BattleUnit> enemies,
         BattleUnit preferredTarget = null)
     {
-        if (preferredTarget != null && !preferredTarget.IsDead)
-        {
-            selectedTarget = preferredTarget;
-        }
+        List<BattleUnit> allUnits = new();
 
-        List<BattleUnit> alivePlayers = players?
-            .Where(unit => unit != null && !unit.IsDead)
-            .ToList() ?? new List<BattleUnit>();
+        if (players != null)
+            allUnits.AddRange(players);
 
-        List<BattleUnit> aliveEnemies = enemies?
-            .Where(unit => unit != null && !unit.IsDead)
-            .ToList() ?? new List<BattleUnit>();
+        if (enemies != null)
+            allUnits.AddRange(enemies);
+
+        allUnits = allUnits
+            .Where(x => x != null && !x.IsDead)
+            .ToList();
+
+        List<BattleUnit> allies = allUnits
+            .Where(x => x.Team == caster.Team)
+            .ToList();
+
+        List<BattleUnit> enemiesOfCaster = allUnits
+            .Where(x => x.Team != caster.Team)
+            .ToList();
 
         switch (type)
         {
             case TargetType.SingleEnemy:
-                if (selectedTarget != null && selectedTarget.Team == Team.Enemy && !selectedTarget.IsDead)
-                {
-                    return new List<BattleUnit> { selectedTarget };
-                }
-
-                return aliveEnemies.Count > 0
-                    ? new List<BattleUnit> { aliveEnemies[0] }
+            case TargetType.SingleAlly:
+                return preferredTarget != null && !preferredTarget.IsDead
+                    ? new List<BattleUnit> { preferredTarget }
                     : new List<BattleUnit>();
 
             case TargetType.AllEnemies:
-                return aliveEnemies;
-
-            case TargetType.SingleAlly:
-                if (selectedTarget != null && selectedTarget.Team == caster.Team && !selectedTarget.IsDead)
-                {
-                    return new List<BattleUnit> { selectedTarget };
-                }
-
-                List<BattleUnit> allies = caster.Team == Team.Player ? alivePlayers : aliveEnemies;
-                return allies.Count > 0
-                    ? new List<BattleUnit> { allies[0] }
-                    : new List<BattleUnit>();
+                return enemiesOfCaster;
 
             case TargetType.AllAllies:
-                return caster.Team == Team.Player ? alivePlayers : aliveEnemies;
+                return allies;
 
             case TargetType.Self:
                 return new List<BattleUnit> { caster };
 
             case TargetType.Everyone:
-                List<BattleUnit> allUnits = new List<BattleUnit>();
-                allUnits.AddRange(alivePlayers);
-                allUnits.AddRange(aliveEnemies);
                 return allUnits;
 
             default:
