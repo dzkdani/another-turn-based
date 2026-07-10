@@ -242,6 +242,16 @@ tanpa mengubah struktur utama Turn Manager.
 
 ---
 
+## Fungus Integration
+
+Fungus digunakan sebagai fondasi sistem Visual Novel untuk mempercepat pengembangan dialogue dan branching event.
+
+Framework ini kemudian dikustomisasi dengan menambahkan beberapa fitur seperti Auto Mode, Fast Forward, Dialogue History, serta integrasi dengan Battle System agar event dialogue dapat memicu transisi gameplay, animasi, maupun efek visual secara langsung.
+
+Dengan pendekatan ini, sistem Visual Novel tetap memanfaatkan kestabilan Fungus namun tetap fleksibel untuk dikembangkan sesuai kebutuhan project.
+
+---
+
 # 🛠 Tech Stack
 
 * Unity 6
