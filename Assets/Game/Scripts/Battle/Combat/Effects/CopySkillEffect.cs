@@ -1,40 +1,39 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
 
 public class CopySkillEffect : IActionEffect
 {
-    private readonly BattleActionPresenter presenter = new BattleActionPresenter();
-
-    public IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData, BattleExecutionContext execution)
+    public IEnumerator Execute(
+        BattleUnit attacker,
+        List<BattleUnit> targets,
+        BattleActionSO actionData,
+        BattleExecutionContext execution)
     {
-        if (attacker == null || actionData == null || targets == null || targets.Count == 0)
-        {
+        if (targets.Count == 0)
             yield break;
-        }
 
         BattleUnit target = targets[0];
-        if (target?.Actions == null) yield break;
 
-        presenter.PlayCastEffects(attacker, actionData, execution.Presentation);
-        yield return new WaitForSeconds(0.5f);
+        if (target == null ||
+            target.Actions == null)
+            yield break;
 
-        BattleActionSO copiedSkillData = target.Actions
-            .FirstOrDefault(s => s != null && s.ActionType != BattleActionType.Run && s.ActionType != BattleActionType.CopySkill);
+        BattleActionSO copiedSkill =
+            target.Actions.FirstOrDefault(
+                x => x != null &&
+                     x.ActionType != BattleActionType.Run &&
+                     x.ActionType != BattleActionType.CopySkill);
 
-        if (copiedSkillData != null)
-        {
-            yield return new WaitForSeconds(0.5f);
+        if (copiedSkill == null)
+            yield break;
 
-            ActionSystem internalSystem = new ActionSystem(execution);
-            List<BattleUnit> newTargets = new List<BattleUnit> { target };
+        BattleActionExecutor executor =
+            new BattleActionExecutor(execution);
 
-            yield return internalSystem.ExecuteAction(attacker, newTargets, copiedSkillData);
-        }
-        else
-        {
-            yield return new WaitForSeconds(1f);
-        }
+        yield return executor.Execute(
+            attacker,
+            new List<BattleUnit> { target },
+            copiedSkill);
     }
 }

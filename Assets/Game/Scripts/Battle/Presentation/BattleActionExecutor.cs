@@ -5,6 +5,7 @@ using UnityEngine;
 public class BattleActionExecutor
 {
     private readonly BattleExecutionContext execution;
+    private readonly BattleActionPresenter presenter = new();
 
     public BattleActionExecutor(BattleExecutionContext execution)
     {
@@ -33,11 +34,39 @@ public class BattleActionExecutor
             yield break;
         }
 
+        presenter.BeginAttack(
+            attacker,
+            execution.Presentation);
+
+        presenter.PlayCastEffects(
+            attacker,
+            actionData,
+            execution.Presentation);
+
+        //use only attack for now
+        yield return attacker.AnimationBridge.PlayAttackUntilHitFrame();
+        //later
+        // yield return attacker.AnimationBridge.PlayActionUntilHitFrame();
+
         yield return effect.Execute(
             attacker,
             targets,
             actionData,
             execution);
+
+        foreach (BattleUnit target in targets)
+        {
+            if (target == null || target.IsDead)
+                continue;
+
+            presenter.PlayHitEffects(
+                attacker,
+                target,
+                actionData,
+                execution.Presentation);
+        }
+
+        presenter.FinishAttack(execution.Presentation);
 
         if (!actionData.ModifyTurnOrder)
             yield break;

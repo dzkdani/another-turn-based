@@ -41,6 +41,12 @@ public class BattleAnimationBridge : MonoBehaviour
         yield return new WaitUntil(() => animationFinished);
     }
 
+    public void PlayAction()
+    {
+        PrepareAnimation();
+        animator.SetTrigger(attackHash);
+    }
+
     public void PlayHit()
     {
         PrepareAnimation();
@@ -53,6 +59,27 @@ public class BattleAnimationBridge : MonoBehaviour
         animator.SetTrigger(deathHash);
         yield return new WaitUntil(() => animationFinished);
     }
+
+    // public IEnumerator PlaySkillUntilHitFrame()
+    // {
+    //     PrepareAnimation();
+    //     animator.SetTrigger(skillHash);
+    //     yield return new WaitUntil(() => hitFrameReached);
+    // }
+
+    // public IEnumerator PlayHealUntilHitFrame()
+    // {
+    //     PrepareAnimation();
+    //     animator.SetTrigger(healHash);
+    //     yield return new WaitUntil(() => hitFrameReached);
+    // }
+
+    // public IEnumerator PlayCounterUntilHitFrame()
+    // {
+    //     PrepareAnimation();
+    //     animator.SetTrigger(counterHash);
+    //     yield return new WaitUntil(() => hitFrameReached);
+    // }
 
     private void PrepareAnimation()
     {

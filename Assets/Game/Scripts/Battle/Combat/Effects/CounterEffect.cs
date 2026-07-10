@@ -1,42 +1,41 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
-using UnityEngine;
 
 public class CounterEffect : IActionEffect
 {
-    private readonly BattleActionPresenter presenter = new BattleActionPresenter();
-
-    public IEnumerator Execute(BattleUnit attacker, List<BattleUnit> targets, BattleActionSO actionData, BattleExecutionContext execution)
+    public IEnumerator Execute(
+        BattleUnit attacker,
+        List<BattleUnit> targets,
+        BattleActionSO actionData,
+        BattleExecutionContext execution)
     {
-        if (attacker == null || actionData == null)
-        {
-            yield break;
-        }
-
-        presenter.PlayCastEffects(attacker, actionData, execution.Presentation);
-        yield return new WaitForSeconds(0.6f);
-
         Action<BattleUnit, BattleUnit, float> counterLogic = null;
 
-        counterLogic = (sourceUnit, targetUnit, damageReceived) =>
+        counterLogic = (source, target, damage) =>
         {
-            if (attacker == null || attacker.IsDead || targetUnit == null || targetUnit == attacker)
+            if (attacker == null ||
+                attacker.IsDead ||
+                target == null ||
+                target == attacker)
             {
-                if (attacker != null)
-                {
-                    attacker.OnTakeDamage -= counterLogic;
-                }
+                attacker.OnTakeDamage -= counterLogic;
                 return;
             }
 
-            int counterDamage = (int)DamageSystem.CalculateDamage(attacker, targetUnit, actionData.DamageMultiplier);
-            targetUnit.TakeDamage(attacker, counterDamage);
-            presenter.PlayHitEffects(attacker, targetUnit, actionData, execution.Presentation);
+            int counterDamage =
+                (int)DamageSystem.CalculateDamage(
+                    attacker,
+                    target,
+                    actionData.DamageMultiplier);
+
+            target.TakeDamage(attacker, counterDamage);
 
             attacker.OnTakeDamage -= counterLogic;
         };
 
         attacker.OnTakeDamage += counterLogic;
+
+        yield break;
     }
 }

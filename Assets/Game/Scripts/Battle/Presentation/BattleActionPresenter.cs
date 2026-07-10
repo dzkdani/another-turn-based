@@ -5,6 +5,12 @@ public class BattleActionPresenter
         BattlePresentationContext presentation)
     {
         presentation.BattleCamera.FocusAttacker(attacker);
+
+        attacker.AnimationBridge?.PlayAction();
+
+        // attacker.AnimationBridge?.PlaySkill();
+        // attacker.AnimationBridge?.PlayHeal();
+        // attacker.AnimationBridge?.PlayCounter();
     }
 
     public void PlayCastEffects(

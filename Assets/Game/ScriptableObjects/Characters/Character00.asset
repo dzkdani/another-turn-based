@@ -25,4 +25,5 @@ MonoBehaviour:
   BasicAttack: {fileID: 11400000, guid: 7d4e03d6267f13c4192c8ab8f46ed920, type: 2}
   Actions:
   - {fileID: 11400000, guid: 7d4e03d6267f13c4192c8ab8f46ed920, type: 2}
+  - {fileID: 11400000, guid: a3a541dba98d5994ea8153e7459bef54, type: 2}
   AIBehavior: {fileID: 11400000, guid: 16c751e5abf004242ba6092794bac46f, type: 2}
