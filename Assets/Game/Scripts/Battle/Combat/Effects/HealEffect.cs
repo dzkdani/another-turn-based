@@ -1,22 +1,49 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class HealEffect : IActionEffect
+public class HealEffect : BattleActionEffectBase
 {
-    public IEnumerator Execute(
+    public override IEnumerator Execute(
         BattleUnit attacker,
         List<BattleUnit> targets,
         BattleActionSO actionData,
         BattleExecutionContext execution)
     {
-        foreach (BattleUnit target in targets)
+        BattleUnit target = targets[0];
+
+        FaceTarget(attacker, target);
+
+        BeginPresentation(attacker, execution.Presentation);
+
+        yield return PlayActionAnimation(attacker);
+
+        presenter.PlayCastEffects(
+            attacker,
+            actionData,
+            execution.Presentation);
+
+        foreach (BattleUnit unit in targets)
         {
-            if (target == null || target.IsDead)
+            if (unit == null || unit.IsDead)
                 continue;
 
-            target.Heal(actionData.HealAmount);
+            unit.Heal(actionData.HealAmount);
+
+            presenter.PlayHitReaction(target);
+
+            presenter.PlayScreenHitEffects(execution.Presentation);
+
+            float hp =
+                (float)unit.Data.CurrentHP /
+                unit.Data.MaxHP;
+
+            if (unit.Team == Team.Player)
+                execution.Presentation.PostProcess.SetIntensity(hp);
         }
 
-        yield break;
+        yield return WaitForActionFinish(attacker);
+
+        FinishPresentation(execution.Presentation);
     }
 }

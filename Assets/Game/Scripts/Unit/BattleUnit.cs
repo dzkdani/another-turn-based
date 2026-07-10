@@ -10,9 +10,6 @@ public class BattleUnit : MonoBehaviour
     public Team Team { get; private set; }
     public bool IsDead { get; private set; }
 
-    public event Action OnTurnStart;
-    public event Action OnTurnEnd;
-    public event Action OnAttack;
     public event Action<BattleUnit, BattleUnit, float> OnTakeDamage;
 
     public GameObject VisualInstance { get; private set; }
@@ -104,21 +101,6 @@ public class BattleUnit : MonoBehaviour
     public BattleActionSO BasicAttack => Definition.BasicAttack;
     public IReadOnlyList<BattleActionSO> Actions => Definition.Actions;
     public AIBehaviorSO AIBehavior => Definition.AIBehavior;
-
-    public void BeginTurn()
-    {
-        OnTurnStart?.Invoke();
-    }
-
-    public void EndTurn()
-    {
-        OnTurnEnd?.Invoke();
-    }
-
-    public void Attack()
-    {
-        OnAttack?.Invoke();
-    }
 
     public void TakeDamage(BattleUnit attacker, int rawDamage)
     {

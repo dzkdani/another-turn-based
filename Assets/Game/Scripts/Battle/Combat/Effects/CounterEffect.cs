@@ -1,41 +1,41 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class CounterEffect : IActionEffect
+public class CounterEffect : BattleActionEffectBase
 {
-    public IEnumerator Execute(
+    public override IEnumerator Execute(
         BattleUnit attacker,
         List<BattleUnit> targets,
         BattleActionSO actionData,
         BattleExecutionContext execution)
     {
-        Action<BattleUnit, BattleUnit, float> counterLogic = null;
+        BattleUnit target = targets[0];
 
-        counterLogic = (source, target, damage) =>
-        {
-            if (attacker == null ||
-                attacker.IsDead ||
-                target == null ||
-                target == attacker)
-            {
-                attacker.OnTakeDamage -= counterLogic;
-                return;
-            }
+        FaceTarget(attacker, target);
 
-            int counterDamage =
-                (int)DamageSystem.CalculateDamage(
-                    attacker,
-                    target,
-                    actionData.DamageMultiplier);
+        BeginPresentation(attacker, execution.Presentation);
 
-            target.TakeDamage(attacker, counterDamage);
+        yield return PlayActionAnimation(attacker);
 
-            attacker.OnTakeDamage -= counterLogic;
-        };
+        presenter.PlayCastEffects(
+            attacker,
+            actionData,
+            execution.Presentation);
 
-        attacker.OnTakeDamage += counterLogic;
+        int damage = (int)DamageSystem.CalculateDamage(
+            attacker,
+            target,
+            actionData.DamageMultiplier);
 
-        yield break;
+        target.TakeDamage(attacker, damage);
+
+        presenter.PlayHitReaction(target);
+
+        presenter.PlayScreenHitEffects(execution.Presentation);
+
+        yield return WaitForActionFinish(attacker);
+
+        FinishPresentation(execution.Presentation);
     }
 }

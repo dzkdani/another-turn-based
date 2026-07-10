@@ -1,45 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class AttackEffect : IActionEffect
+public class AttackEffect : BattleActionEffectBase
 {
-    protected readonly BattleActionPresenter presenter =
-        new BattleActionPresenter();
-
-    public virtual IEnumerator Execute(
+    public override IEnumerator Execute(
         BattleUnit attacker,
         List<BattleUnit> targets,
         BattleActionSO actionData,
         BattleExecutionContext execution)
     {
-        if (attacker == null ||
-            actionData == null ||
-            targets.Count == 0)
-        {
-            yield break;
-        }
+        BattleUnit primary = targets[0];
 
-        BattleUnit primaryTarget = targets[0];
+        FaceTarget(attacker, primary);
 
-        attacker.Visual.FaceTarget(primaryTarget.transform);
+        BeginPresentation(attacker, execution.Presentation);
 
-        presenter.BeginAttack(
-            attacker,
-            execution.Presentation);
-
-        //
-        // Start attack animation
-        //
-
-        if (attacker.AnimationBridge != null)
-        {
-            yield return attacker.AnimationBridge.PlayAttackUntilHitFrame();
-        }
-
-        //
-        // Hit Frame
-        //
+        yield return PlayActionAnimation(attacker);
 
         presenter.PlayCastEffects(
             attacker,
@@ -51,12 +27,6 @@ public class AttackEffect : IActionEffect
             if (target == null || target.IsDead)
                 continue;
 
-            presenter.PlayHitEffects(
-                attacker,
-                target,
-                actionData,
-                execution.Presentation);
-
             int damage = (int)DamageSystem.CalculateDamage(
                 attacker,
                 target,
@@ -64,30 +34,31 @@ public class AttackEffect : IActionEffect
 
             target.TakeDamage(attacker, damage);
 
-            float hpPercent =
+            // Trigger enemy hit animation immediately
+            presenter.PlayHitReaction(target);
+
+            // Wait exactly one frame so Animator enters Hit state
+            yield return null;
+
+            // Now fire all impact effects together
+            presenter.PlayScreenHitEffects(execution.Presentation);
+            presenter.PlayHitAudio(
+                target,
+                actionData,
+                execution.Presentation);
+
+            float hp =
                 (float)target.Data.CurrentHP /
                 target.Data.MaxHP;
 
-            execution.Presentation.Distortion
-                .SetIntensity(hpPercent);
+            execution.Presentation.Distortion.SetIntensity(hp);
 
             if (target.Team == Team.Player)
-            {
-                execution.Presentation.PostProcess
-                    .SetIntensity(hpPercent);
-            }
+                execution.Presentation.PostProcess.SetIntensity(hp);
         }
 
-        //
-        // Finish animation
-        //
+        yield return WaitForActionFinish(attacker);
 
-        if (attacker.AnimationBridge != null)
-        {
-            yield return attacker.AnimationBridge.WaitForAnimationFinished();
-        }
-
-        presenter.FinishAttack(
-            execution.Presentation);
+        FinishPresentation(execution.Presentation);
     }
 }

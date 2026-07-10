@@ -68,8 +68,6 @@
                 return;
             }
 
-            CurrentUnit.BeginTurn();
-
             // REFAKTOR KUNCI: Cek faksi dinamis, bukan enum tim statis dari SO
             if (CurrentUnit.Team == Team.Player)
             {
@@ -122,8 +120,6 @@
             {
                 target
             };
-
-            CurrentUnit.Attack();
 
             yield return actionSystem.ExecuteAction(
                 CurrentUnit,
@@ -178,8 +174,6 @@
             battleUI.HideCommands();
             battleUI.DisableTargetSelection();
 
-            CurrentUnit.Attack();
-
             yield return actionSystem.ExecuteAction(CurrentUnit, targets, currentAction);
             EndCurrentTurn(players, enemies);
         }
@@ -187,12 +181,12 @@
         public void EndCurrentTurn(List<BattleUnit> players, List<BattleUnit> enemies)
         {
             Debug.Log($"{CurrentUnit.Data.Name} ending turn");
-            CurrentUnit.EndTurn();
 
             CleanupDeadUnits(players, enemies);
 
             if (AreAllEnemiesDead(enemies))
             {
+                Debug.Log("Victory");
                 CurrentState = BattleState.Victory;
                 BattleEvents.OnVictory?.Invoke();
                 return;
@@ -200,6 +194,7 @@
 
             if (AreAllPlayersDead(players))
             {
+                Debug.Log("Defeat");
                 CurrentState = BattleState.Defeat;
                 BattleEvents.OnDefeat?.Invoke();
                 return;

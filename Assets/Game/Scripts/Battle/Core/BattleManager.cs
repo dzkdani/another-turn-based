@@ -180,8 +180,6 @@ public class BattleManager : MonoBehaviour
             yield break;
         }
 
-        CurrentUnit.Attack();
-
         yield return actionSystem.ExecuteAction(
             CurrentUnit,
             targets,

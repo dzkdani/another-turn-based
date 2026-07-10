@@ -50,7 +50,7 @@ public class ScreenDistortionController : MonoBehaviour
     {
         distortionTween?.Kill();
 
-        currentIntensity = 0f;
+        SetIntensity(0f);  
 
         Sequence sequence = DOTween.Sequence();
 

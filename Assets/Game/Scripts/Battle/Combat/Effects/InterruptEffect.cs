@@ -1,32 +1,38 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class InterruptEffect : IActionEffect
+public class InterruptEffect : BattleActionEffectBase
 {
-    public IEnumerator Execute(
+    public override IEnumerator Execute(
         BattleUnit attacker,
         List<BattleUnit> targets,
         BattleActionSO actionData,
         BattleExecutionContext execution)
     {
-        foreach (BattleUnit target in targets)
-        {
-            if (target == null || target.IsDead)
-                continue;
+        BattleUnit target = targets[0];
 
-            int damage =
-                (int)DamageSystem.CalculateDamage(
-                    attacker,
-                    target,
-                    actionData.DamageMultiplier);
+        FaceTarget(attacker, target);
 
-            target.TakeDamage(attacker, damage);
+        BeginPresentation(attacker, execution.Presentation);
 
-            execution.TurnManager.ModifyActionValue(
-                target,
-                actionData.ActionValueModifier);
-        }
+        yield return PlayActionAnimation(attacker);
 
-        yield break;
+        presenter.PlayCastEffects(
+            attacker,
+            actionData,
+            execution.Presentation);
+
+        execution.TurnManager.ModifyActionValue(
+            target,
+            actionData.ActionValueModifier);
+
+        presenter.PlayHitReaction(target);
+
+        presenter.PlayScreenHitEffects(execution.Presentation);
+
+        yield return WaitForActionFinish(attacker);
+
+        FinishPresentation(execution.Presentation);
     }
 }

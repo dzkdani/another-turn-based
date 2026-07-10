@@ -1,16 +1,10 @@
 public class BattleActionPresenter
 {
-    public void BeginAttack(
+    public void BeginAction(
         BattleUnit attacker,
         BattlePresentationContext presentation)
     {
         presentation.BattleCamera.FocusAttacker(attacker);
-
-        attacker.AnimationBridge?.PlayAction();
-
-        // attacker.AnimationBridge?.PlaySkill();
-        // attacker.AnimationBridge?.PlayHeal();
-        // attacker.AnimationBridge?.PlayCounter();
     }
 
     public void PlayCastEffects(
@@ -29,31 +23,39 @@ public class BattleActionPresenter
         }
     }
 
-    public void PlayHitEffects(
-        BattleUnit attacker,
+    public void PlayHitReaction(BattleUnit target)
+    {
+        if (target == null)
+            return;
+
+        target.AnimationBridge?.PlayHit();
+    }
+
+    public void PlayScreenHitEffects(
+        BattlePresentationContext presentation)
+    {
+        presentation.PostProcess.PlayDamageFlash();
+        presentation.PostProcess.PlayBloomPulse();
+        presentation.Distortion.PlayDistortionPulse();
+    }
+
+    public void PlayHitAudio(
         BattleUnit target,
         BattleActionSO action,
         BattlePresentationContext presentation)
     {
-        presentation.BattleCamera.FocusTarget(target);
+        if (presentation.Audio == null)
+            return;
 
-        if (target.AnimationBridge != null)
-            target.AnimationBridge.PlayHit();
+        if (action?.FX == null)
+            return;
 
-        presentation.PostProcess.PlayDamageFlash();
-        presentation.PostProcess.PlayBloomPulse();
-        presentation.Distortion.PlayDistortionPulse();
-
-        if (presentation.Audio != null &&
-            action?.FX != null)
-        {
-            presentation.Audio.Play(
-                action.FX.HitSFX,
-                target.Visual.HitPoint);
-        }
+        presentation.Audio.Play(
+            action.FX.HitSFX,
+            target.Visual.HitPoint);
     }
 
-    public void FinishAttack(
+    public void FinishAction(
         BattlePresentationContext presentation)
     {
         presentation.BattleCamera.ResetCamera();
