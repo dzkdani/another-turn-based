@@ -48,7 +48,6 @@
             allUnits.AddRange(players);
             allUnits.AddRange(enemies);
 
-            // TurnManager sekarang menggunakan inisialisasi HSR Action Value
             turnManager.Initialize(allUnits);
             StartTurn();
         }

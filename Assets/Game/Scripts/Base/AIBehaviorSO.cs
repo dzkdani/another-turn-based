@@ -14,11 +14,6 @@ public class AIBehaviorSO : ScriptableObject
     [Header("Target Selection")]
     public AIBehaviorType BehaviorType = AIBehaviorType.AttackFirstPlayer;
 
-    /// <summary>
-    /// Decide which action the AI wants to use.
-    /// For now AI always prefers Basic Attack.
-    /// Later this can be expanded for Heal, Buff, Counter, etc.
-    /// </summary>
     public virtual BattleActionSO SelectAction(BattleUnit caster)
     {
         BattleUnit unit = caster;
@@ -33,10 +28,6 @@ public class AIBehaviorSO : ScriptableObject
                 Random.Range(0, caster.Actions.Count)];
     }
 
-    /// <summary>
-    /// Decide who will become the target.
-    /// Strategy depends on BehaviorType.
-    /// </summary>
     public virtual BattleUnit SelectTarget(
         BattleUnit caster,
         BattleActionSO action,
@@ -97,10 +88,7 @@ public class AIBehaviorSO : ScriptableObject
                 return candidates.First();
         }
     }
-
-    /// <summary>
-    /// Extension point for future boss AI.
-    /// </summary>
+    
     protected virtual BattleUnit SelectCustomTarget(
         BattleUnit caster,
         BattleActionSO action,

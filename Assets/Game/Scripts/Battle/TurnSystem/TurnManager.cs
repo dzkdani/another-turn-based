@@ -146,11 +146,8 @@ public class TurnManager
         }
     }
 
-    // Fungsi pembantu jika ada mekanik Buff/Debuff SPD di tengah game
     public void RefreshOrder()
     {
-        // Di sistem HSR asli, jika SPD berubah, sisa AV akan dikalkulasi ulang secara proporsional.
-        // Untuk scope test 4 hari ini, mereset AV berdasarkan SPD baru sudah sangat aman dan valid:
         var activeUnits = unitAVRegistry.Keys.ToList();
         foreach (var unit in activeUnits)
         {

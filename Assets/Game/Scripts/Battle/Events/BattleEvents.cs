@@ -63,6 +63,4 @@ public static class BattleEvents
     public static Action<IReadOnlyList<BattleUnit>> OnTargetSelectionStarted;
 
     public static Action OnTargetSelectionCancelled;
-
-    public static Action<IReadOnlyList<BattleUnit>> OnPreviewTargetsChanged;
 }

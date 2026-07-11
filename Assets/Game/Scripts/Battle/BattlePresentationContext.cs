@@ -10,9 +10,6 @@ public class BattlePresentationContext
 
     // public BattleTimelineManager Timeline { get; }
 
-    // public CameraFXManager CameraFX { get; }
-
-    // public DamagePopupManager DamagePopup { get; }
 
     public BattlePresentationContext(
         BattleVFXManager vfx,

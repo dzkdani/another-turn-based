@@ -142,19 +142,12 @@ public class BattleUIController : MonoBehaviour
         {
             BattleCommandButton button;
 
-            //---------------------------------------
-            // Reuse existing button
-            //---------------------------------------
-
+            // Reuse
             if (i < commandButtons.Count)
             {
                 button = commandButtons[i];
             }
-
-            //---------------------------------------
-            // Need a new one
-            //---------------------------------------
-
+            //CreateNew
             else
             {
                 button = Instantiate(

@@ -142,9 +142,7 @@ public class PostProcessController : MonoBehaviour
 
     public void PlayBloomPulse()
     {
-        //-----------------------------------
-        // Bloom Pulse
-        //-----------------------------------
+        //Bloom Pulse
 
         bloomTween?.Kill();
 
@@ -179,9 +177,7 @@ public class PostProcessController : MonoBehaviour
 
     public void PlayDamageFlash()
     {
-        //-----------------------------------
-        // Damage Flash
-        //-----------------------------------
+        //Flash
 
         exposureTween?.Kill();
 

@@ -80,7 +80,5 @@ public class BattleCameraManager : MonoBehaviour
         currentOffset = Vector3.right *
                         unit.Visual.CameraFocusPoint.position.x 
                         * targetOffsetStrength;
-
-        // currentOffset = Vector3.zero;
     }
 }
